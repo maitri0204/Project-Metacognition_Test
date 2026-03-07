@@ -16,8 +16,33 @@ export interface User {
   isActive?: boolean;
 }
 
-// ─── Question ───
-export type QuestionPart = "Knowledge" | "Regulation";
+// ─── Test Result ───
+export interface CategoryScore {
+  category: string;
+  part: string;
+  score: number;
+  maxScore: number;
+  percentage: number;
+}
+
+export interface TestResult {
+  _id: string;
+  student: string | { _id: string; firstName: string; lastName: string; email: string };
+  attemptNumber: number;
+  categoryScores: CategoryScore[];
+  knowledgeScore: number;
+  knowledgeMaxScore: number;
+  knowledgePercentage: number;
+  regulationScore: number;
+  regulationMaxScore: number;
+  regulationPercentage: number;
+  totalScore: number;
+  totalMaxScore: number;
+  quadrant: string;
+  quadrantLabel: string;
+  completedAt: string;
+  createdAt?: string;
+}
 
 export type QuestionCategory =
   | "Declarative"

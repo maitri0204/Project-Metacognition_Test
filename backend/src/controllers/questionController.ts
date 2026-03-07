@@ -13,8 +13,8 @@ const CATEGORY_TO_PART: Record<string, string> = {
   Evaluation: "Regulation",
 };
 
-// Max questions allowed per category
-const CATEGORY_LIMITS: Record<string, number> = {
+// Student-facing limits (used only for info, not enforced here)
+const STUDENT_LIMITS: Record<string, number> = {
   Declarative: 8,
   Procedural: 4,
   Conditional: 5,
@@ -46,19 +46,13 @@ export const addQuestion = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    if (!CATEGORY_LIMITS[category]) {
+    if (!CATEGORY_TO_PART[category]) {
       res.status(400).json({ message: `Invalid category: "${category}".` });
       return;
     }
 
     const currentCount = await Question.countDocuments({ category });
-    if (currentCount >= CATEGORY_LIMITS[category]) {
-      res.status(400).json({
-        message: `"${category}" already has the maximum of ${CATEGORY_LIMITS[category]} questions.`,
-      });
-      return;
-    }
-
+    const studentLimit = STUDENT_LIMITS[category];
     const question = new Question({
       questionText: questionText.trim(),
       part: CATEGORY_TO_PART[category],
@@ -68,7 +62,9 @@ export const addQuestion = async (req: Request, res: Response): Promise<void> =>
     });
 
     await question.save();
-    console.log(`📝 Question added: [${category}] "${questionText.trim()}"`);
+    const total = currentCount + 1;
+    const notice = total > studentLimit ? ` (note: students see first ${studentLimit})` : "";
+    console.log(`📝 Question added: [${category}] #${total}${notice} — "${questionText.trim()}"`);
 
     res.status(201).json({ message: "Question added successfully.", question });
   } catch (error: any) {

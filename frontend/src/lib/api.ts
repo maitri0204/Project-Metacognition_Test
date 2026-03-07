@@ -74,4 +74,16 @@ export const questionAPI = {
   remove: (id: string) => api.delete(`/questions/${id}`),
 };
 
+// ─── Test API (student only) ───
+export const testAPI = {
+  getQuestions: () => api.get("/test/questions"),
+
+  submit: (data: { answers: { questionId: string; score: number }[] }) =>
+    api.post("/test/submit", data),
+
+  getResult: (id: string) => api.get(`/test/results/${id}`),
+
+  getMyResults: () => api.get("/test/my-results"),
+};
+
 export default api;
