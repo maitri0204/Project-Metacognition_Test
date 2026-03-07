@@ -61,4 +61,17 @@ export const authAPI = {
     api.get("/auth/profile"),
 };
 
+// ─── Questions API (admin only) ───
+export const questionAPI = {
+  getAll: () => api.get("/questions"),
+
+  add: (data: { questionText: string; category: string }) =>
+    api.post("/questions", data),
+
+  update: (id: string, data: { questionText: string }) =>
+    api.put(`/questions/${id}`, data),
+
+  remove: (id: string) => api.delete(`/questions/${id}`),
+};
+
 export default api;

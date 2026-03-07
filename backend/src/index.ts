@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db";
 import authRoutes from "./routes/authRoutes";
+import questionRoutes from "./routes/questionRoutes";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 
 // API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/questions", questionRoutes);
 
 // Connect to MongoDB, then start server
 const startServer = async (): Promise<void> => {
