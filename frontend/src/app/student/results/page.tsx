@@ -119,14 +119,14 @@ export default function MyResultsPage() {
                   {/* Score bars */}
                   <div className="flex-1 grid grid-cols-3 gap-4">
                     {[
-                      { label: "Total",      pct: totPct, score: `${r.totalScore}/${r.totalMaxScore}`,         color: "#6b7280" },
+                      { label: "Total",      pct: totPct, score: `${r.totalScore}/${r.totalMaxScore}`,         color: "#374151" },
                       { label: "Knowledge",  pct: kPct,   score: `${r.knowledgeScore}/${r.knowledgeMaxScore}`, color: "#3b82f6" },
                       { label: "Regulation", pct: rPct,   score: `${r.regulationScore}/${r.regulationMaxScore}`, color: "#10b981" },
                     ].map(({ label, pct, score, color }) => (
                       <div key={label}>
                         <div className="flex items-end justify-between mb-1">
                           <span className="text-[13px] font-semibold text-gray-500">{label}</span>
-                          <span className="text-xs font-bold tabular-nums" style={{ color }}>{pct}%</span>
+                          <span className="text-sm font-bold tabular-nums" style={{ color }}>{pct}%</span>
                         </div>
                         <div className="bg-gray-100 rounded-full h-1.5">
                           <div
@@ -140,7 +140,7 @@ export default function MyResultsPage() {
                   </div>
 
                   {/* Arrow */}
-                  <svg className="w-5 h-5 text-gray-300 flex-shrink-0 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-gray-500 flex-shrink-0 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>

@@ -181,7 +181,7 @@ export default function TestPage() {
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-5 py-4 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-lg font-bold text-gray-900">Metacognition Assessment</h1>
-            <p className="text-xs text-gray-500 mt-0.5">Answer all 52 questions honestly — there are no right or wrong answers</p>
+            <p className="text-sm text-gray-700 mt-0.5">Answer all 52 questions honestly — there are no right or wrong answers</p>
           </div>
           <div className="flex items-center gap-4 flex-shrink-0">
             {/* Progress */}
@@ -225,7 +225,7 @@ export default function TestPage() {
                 <button
                   key={s.name}
                   onClick={() => goTo(SECTION_STARTS[si])}
-                  className={`relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                  className={`relative px-3 py-1.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
                     isActive
                       ? isKnow
                         ? "bg-blue-600 text-white shadow-sm"
@@ -243,7 +243,7 @@ export default function TestPage() {
                     </svg>
                   )}
                   {s.name}
-                  <span className={`text-xs ${isActive ? "opacity-75" : "opacity-60"}`}>
+                  <span className={`text-sm ${isActive ? "opacity-75" : "opacity-60"}`}>
                     {secAns}/{s.count}
                   </span>
                 </button>
@@ -257,7 +257,7 @@ export default function TestPage() {
           {/* Question + options */}
           <div className="flex-1 min-w-0">
             {/* Breadcrumb */}
-            <p className="text-xs text-gray-400 mb-3">
+            <p className="text-sm text-gray-700 mb-3">
               Part {SECTIONS[activeSection].part === "Knowledge" ? "I" : "II"}: {SECTIONS[activeSection].part}
               {" → "}
               {SECTIONS[activeSection].name}
@@ -267,9 +267,9 @@ export default function TestPage() {
 
             {/* Question card */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mb-4">
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-4">
                 <span
-                  className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold flex-shrink-0 ${
+                  className={`w-14 h-14 flex items-center justify-center rounded-xl text-2xl font-bold flex-shrink-0 ${
                     currentAnswer
                       ? "bg-green-100 text-green-700"
                       : "bg-gray-100 text-gray-500"
@@ -277,21 +277,21 @@ export default function TestPage() {
                 >
                   {currentIdx + 1}
                 </span>
-                <p className="text-gray-900 text-[17px] leading-relaxed pt-1.5">
+                <p className="text-gray-900 text-base leading-relaxed pt-2">
                   {currentQ?.questionText}
                 </p>
               </div>
             </div>
 
             {/* Score options */}
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {SCORE_OPTIONS.map(({ score, label, desc }) => {
                 const selected = currentAnswer === score;
                 return (
                   <button
                     key={score}
                     onClick={() => handleAnswer(score)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left group ${
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-left group ${
                       selected
                         ? "border-blue-500 bg-blue-50"
                         : "border-gray-200 hover:border-blue-200 hover:bg-gray-50"
@@ -307,7 +307,7 @@ export default function TestPage() {
                     </div>
                     {/* Score badge */}
                     <span
-                      className={`text-sm font-bold w-6 text-center flex-shrink-0 ${
+                      className={`text-xs font-bold w-5 text-center flex-shrink-0 ${
                         selected ? "text-blue-700" : "text-gray-400"
                       }`}
                     >
@@ -318,7 +318,7 @@ export default function TestPage() {
                       <p className={`text-sm font-semibold ${selected ? "text-blue-800" : "text-gray-800"}`}>
                         {label}
                       </p>
-                      <p className={`text-xs mt-0.5 ${selected ? "text-blue-500" : "text-gray-400"}`}>
+                      <p className={`text-xs mt-0.5 ${selected ? "text-blue-500" : "text-gray-700"}`}>
                         {desc}
                       </p>
                     </div>
@@ -340,7 +340,7 @@ export default function TestPage() {
                 Previous
               </button>
 
-              <span className="text-xs text-gray-400">{currentIdx + 1} / {questions.length}</span>
+              <span className="text-sm text-gray-700">{currentIdx + 1} / {questions.length}</span>
 
               {currentIdx < questions.length - 1 ? (
                 <button
@@ -369,77 +369,6 @@ export default function TestPage() {
                 </button>
               )}
             </div>
-          </div>
-
-          {/* ── Right navigator panel ─────────────────────────────────────── */}
-          <div className="w-56 flex-shrink-0 bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sticky top-6">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              Question Navigator
-            </p>
-
-            <div className="space-y-3">
-              {SECTIONS.map((s, si) => {
-                const start = SECTION_STARTS[si];
-                const end   = start + s.count;
-                const isKnow = s.part === "Knowledge";
-
-                return (
-                  <div key={s.name}>
-                    <p className={`text-[13px] font-bold uppercase tracking-wider mb-1.5 ${isKnow ? "text-blue-500" : "text-emerald-500"}`}>
-                      {s.name}
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {questions.slice(start, end).map((q, qi) => {
-                        const globalIdx  = start + qi;
-                        const isAnswered = !!answers[q._id];
-                        const isCurrent  = globalIdx === currentIdx;
-
-                        return (
-                          <button
-                            key={q._id}
-                            onClick={() => goTo(globalIdx)}
-                            title={`Q${globalIdx + 1}${isAnswered ? " ✓" : ""}`}
-                            className={`w-7 h-7 rounded-md text-[13px] font-bold transition-all ${
-                              isCurrent
-                                ? "bg-orange-500 text-white ring-2 ring-orange-300"
-                                : isAnswered
-                                ? "bg-green-500 text-white"
-                                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                            }`}
-                          >
-                            {globalIdx + 1}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Legend */}
-            <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
-              {[
-                { color: "bg-orange-500", label: "Current" },
-                { color: "bg-green-500",  label: "Answered" },
-                { color: "bg-gray-100 border border-gray-200", label: "Not Answered" },
-              ].map(({ color, label }) => (
-                <div key={label} className="flex items-center gap-2">
-                  <div className={`w-3.5 h-3.5 rounded ${color}`} />
-                  <span className="text-[13px] text-gray-500">{label}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Mini submit button */}
-            {allAnswered && (
-              <button
-                onClick={handleSubmit}
-                className="mt-4 w-full py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors"
-              >
-                Submit Test ✓
-              </button>
-            )}
           </div>
         </div>
       </div>

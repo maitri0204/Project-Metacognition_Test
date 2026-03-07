@@ -205,9 +205,7 @@ html { scroll-behavior: smooth; }
   display: none;
 }
 
-/* ─── Readability: darken gray text classes for better visibility ─── */
-@layer utilities {
-  .text-gray-400 { color: #374151; }
-  .text-gray-500 { color: #1f2937; }
-  .text-gray-600 { color: #111827; }
-}
+/* ─── Readability: unlayered overrides beat @layer utilities ─── */
+.text-gray-400 { color: #374151; }
+.text-gray-500 { color: #1f2937; }
+.text-gray-600 { color: #111827; }

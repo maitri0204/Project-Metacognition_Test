@@ -189,28 +189,28 @@ export default function QuestionsPage() {
       {/* ── Stats row ───────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-          <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-2">Total Bank</p>
+          <p className="text-sm text-gray-800 font-semibold uppercase tracking-wider mb-2">Total Bank</p>
           <div className="flex items-end gap-1.5 mb-1">
             <span className="text-3xl font-bold text-gray-900">{totalBank}</span>
-            <span className="text-gray-400 mb-0.5 text-sm">questions</span>
+            <span className="text-gray-700 mb-0.5 text-sm">questions</span>
           </div>
-          <p className="text-xs text-gray-400">Students see: <strong className="text-gray-600">52</strong> (randomly shuffled per attempt)</p>
+          <p className="text-sm text-gray-700">Students see: <strong className="text-gray-900">52</strong> (randomly shuffled per attempt)</p>
         </div>
         <div className="bg-white rounded-xl p-5 border border-blue-100 shadow-sm">
-          <p className="text-xs text-blue-500 font-semibold uppercase tracking-wider mb-2">Knowledge Bank</p>
+          <p className="text-sm text-blue-600 font-semibold uppercase tracking-wider mb-2">Knowledge Bank</p>
           <div className="flex items-end gap-1.5 mb-1">
             <span className="text-3xl font-bold text-blue-700">{byPart("Knowledge")}</span>
-            <span className="text-blue-300 mb-0.5 text-sm">in bank</span>
+            <span className="text-blue-600 mb-0.5 text-sm">in bank</span>
           </div>
-          <p className="text-xs text-blue-400">Students see: <strong className="text-blue-600">17</strong> · Declarative · Procedural · Conditional</p>
+          <p className="text-sm text-blue-700">Students see: <strong className="text-blue-800">17</strong> · Declarative · Procedural · Conditional</p>
         </div>
         <div className="bg-white rounded-xl p-5 border border-emerald-100 shadow-sm">
-          <p className="text-xs text-emerald-500 font-semibold uppercase tracking-wider mb-2">Regulation Bank</p>
+          <p className="text-sm text-emerald-600 font-semibold uppercase tracking-wider mb-2">Regulation Bank</p>
           <div className="flex items-end gap-1.5 mb-1">
             <span className="text-3xl font-bold text-emerald-700">{byPart("Regulation")}</span>
-            <span className="text-emerald-300 mb-0.5 text-sm">in bank</span>
+            <span className="text-emerald-600 mb-0.5 text-sm">in bank</span>
           </div>
-          <p className="text-xs text-emerald-400">Students see: <strong className="text-emerald-600">35</strong> · 5 regulation categories</p>
+          <p className="text-sm text-emerald-700">Students see: <strong className="text-emerald-800">35</strong> · 5 regulation categories</p>
         </div>
       </div>
 
@@ -223,7 +223,7 @@ export default function QuestionsPage() {
             <span className="text-gray-700 text-sm">{label}</span>
           </div>
         ))}
-        <span className="ml-auto text-xs text-gray-500 hidden sm:block">
+        <span className="ml-auto text-sm text-gray-700 hidden sm:block">
           1–5 per question · self-reported · no correct answers
         </span>
       </div>
@@ -241,7 +241,7 @@ export default function QuestionsPage() {
                 className={`pb-4 px-1 font-semibold text-sm transition-colors relative ${
                   isActive
                     ? `${c.text}`
-                    : "text-gray-500 hover:text-gray-700"
+                    : "text-gray-800 hover:text-gray-900"
                 }`}
               >
                 Part {part.roman}: {part.part}
@@ -266,13 +266,13 @@ export default function QuestionsPage() {
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <p className={`text-lg font-bold ${c.text}`}>Part {part.roman}: {part.part}</p>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-gray-800 mt-1">
                   {part.categories.length} sub-types · students see {part.studentTotal} questions · max {part.scoreMax} pts
                 </p>
               </div>
               <div className={`text-right ${c.badgeBg} px-4 py-2 rounded-lg`}>
                 <p className={`text-lg font-bold ${c.text}`}>{bankCount}</p>
-                <p className="text-xs text-gray-600">in bank</p>
+                <p className="text-sm text-gray-800">in bank</p>
               </div>
             </div>
 
@@ -300,15 +300,15 @@ export default function QuestionsPage() {
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900 text-sm">{cat.name}</p>
-                          <p className="text-xs text-gray-400 mt-0.5 max-w-xs leading-snug">{cat.description}</p>
+                          <p className="text-sm text-gray-700 mt-0.5 max-w-xs leading-snug">{cat.description}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 flex-shrink-0 ml-4">
                         <div className="hidden sm:block">
                           <div className="flex items-center justify-end gap-1 mb-1">
-                            <span className={`text-xs font-semibold ${c.text}`}>
+                            <span className={`text-sm font-semibold ${c.text}`}>
                               {overQuota
-                                ? <>{count} <span className="text-gray-400 font-normal">({cat.studentLimit} shown)</span></>
+                                ? <>{count} <span className="text-gray-700 font-normal">({cat.studentLimit} shown)</span></>
                                 : <>{count}&thinsp;/&thinsp;{cat.studentLimit}</>}
                             </span>
                           </div>
@@ -330,10 +330,10 @@ export default function QuestionsPage() {
                       <div className={`border-t px-4 py-4 ${c.sectionBorder}`}>
 
                         {/* Bank info bar */}
-                        <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-xs mb-4 px-3 py-2 rounded-lg ${c.badgeBg}`}>
+                        <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-sm mb-4 px-3 py-2 rounded-lg ${c.badgeBg}`}>
                           <span className={`font-semibold ${c.text}`}>Bank: {count}</span>
-                          <span className="text-gray-400">·</span>
-                          <span className="text-gray-600">
+                          <span className="text-gray-600">·</span>
+                          <span className="text-gray-800">
                             Students see: <strong>{Math.min(count, cat.studentLimit)}</strong> randomly
                           </span>
                           {overQuota && (
@@ -356,7 +356,7 @@ export default function QuestionsPage() {
 
                         {/* Questions list */}
                         {catQs.length === 0 && !isAdding ? (
-                          <p className="text-sm text-gray-400 italic text-center py-6">
+                          <p className="text-base text-gray-600 italic text-center py-6">
                             No questions yet — click &ldquo;Add Question to Bank&rdquo; below to start.
                           </p>
                         ) : (
@@ -381,12 +381,12 @@ export default function QuestionsPage() {
                                             if (e.key === "Escape") cancelEditing();
                                           }}
                                         />
-                                        <p className="text-xs text-gray-400 mt-1">Ctrl+Enter to save · Escape to cancel</p>
+                                        <p className="text-sm text-gray-700 mt-1">Ctrl+Enter to save · Escape to cancel</p>
                                         <div className="flex gap-2 mt-2">
-                                          <button onClick={() => handleUpdate(q._id)} disabled={saving} className={`px-4 py-1.5 text-xs font-semibold rounded-lg text-white transition-colors disabled:opacity-50 ${c.saveBg}`}>
+                                          <button onClick={() => handleUpdate(q._id)} disabled={saving} className={`px-4 py-1.5 text-sm font-semibold rounded-lg text-white transition-colors disabled:opacity-50 ${c.saveBg}`}>
                                             {saving ? "Saving…" : "Save Changes"}
                                           </button>
-                                          <button onClick={cancelEditing} className="px-4 py-1.5 text-xs font-medium rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
+                                          <button onClick={cancelEditing} className="px-4 py-1.5 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
                                             Cancel
                                           </button>
                                         </div>
@@ -395,10 +395,10 @@ export default function QuestionsPage() {
                                   </div>
                                 ) : (
                                   <div className="flex items-start gap-3 px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-                                    <span className={`mt-0.5 text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0 ${c.badgeBg} ${c.text}`}>
+                                    <span className={`mt-0.5 text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0 ${c.badgeBg} ${c.text}`}>
                                       {idx + 1}
                                     </span>
-                                    <p className="flex-1 text-sm text-gray-700 leading-relaxed">{q.questionText}</p>
+                                    <p className="flex-1 text-base text-gray-900 leading-relaxed">{q.questionText}</p>
                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                                       <button onClick={() => startEditing(q)} className={`p-1.5 text-gray-400 hover:${c.text} ${c.btnHover} rounded-lg transition-colors`} title="Edit">
                                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -421,7 +421,7 @@ export default function QuestionsPage() {
                         {/* Add form */}
                         {isAdding && (
                           <div className={`mt-1 p-4 rounded-xl border ${c.editBg}`}>
-                            <p className={`text-xs font-semibold mb-2 ${c.text}`}>
+                            <p className={`text-sm font-semibold mb-2 ${c.text}`}>
                               Adding to bank — will be question #{count + 1}
                               {count >= cat.studentLimit && (
                                 <span className="ml-1.5 text-amber-600 font-normal">(students see {cat.studentLimit} randomly)</span>
@@ -439,7 +439,7 @@ export default function QuestionsPage() {
                                 if (e.key === "Escape") cancelAdding();
                               }}
                             />
-                            <p className="text-xs text-gray-400 mt-1 mb-3">Ctrl+Enter to save · Escape to cancel</p>
+                            <p className="text-sm text-gray-700 mt-1 mb-3">Ctrl+Enter to save · Escape to cancel</p>
                             <div className="flex gap-2">
                               <button onClick={() => handleAdd(cat.name)} disabled={saving} className={`px-4 py-2 text-sm font-semibold rounded-lg text-white transition-colors disabled:opacity-50 ${c.saveBg}`}>
                                 {saving ? "Adding…" : "Add to Bank"}
