@@ -1,406 +1,415 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { testAPI } from "@/lib/api";
-import type { Question } from "@/types";
+import { Question } from "@/types";
 
-// ─── Section configuration (must match backend STUDENT_LIMITS order) ─────────
-
-const SECTIONS = [
-  { name: "Declarative",            part: "Knowledge",  count: 8  },
-  { name: "Procedural",             part: "Knowledge",  count: 4  },
-  { name: "Conditional",            part: "Knowledge",  count: 5  },
-  { name: "Planning",               part: "Regulation", count: 7  },
-  { name: "Information Management", part: "Regulation", count: 10 },
-  { name: "Monitoring",             part: "Regulation", count: 7  },
-  { name: "Debugging",              part: "Regulation", count: 5  },
-  { name: "Evaluation",             part: "Regulation", count: 6  },
-] as const;
-
-const SCORE_OPTIONS = [
-  { score: 1, label: "Never",     desc: "I never do this" },
-  { score: 2, label: "Rarely",    desc: "I do this less than half the time" },
-  { score: 3, label: "Sometimes", desc: "I do this about half the time" },
-  { score: 4, label: "Often",     desc: "I do this more than half the time" },
-  { score: 5, label: "Always",    desc: "I always do this" },
-];
-
-// Pre-compute section start indices
-const SECTION_STARTS = SECTIONS.reduce<number[]>((acc, s, i) => {
-  acc.push(i === 0 ? 0 : acc[i - 1] + SECTIONS[i - 1].count);
-  return acc;
-}, []);
-
-function getSectionForIdx(idx: number): number {
-  for (let i = SECTIONS.length - 1; i >= 0; i--) {
-    if (idx >= SECTION_STARTS[i]) return i;
-  }
-  return 0;
+interface AnswerMap {
+  [questionId: string]: { selectedOption: string; score: number };
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+const LS_KEY = "metacog_test_answers";
+
+const DOMAIN_COLOR: Record<number, string> = {
+  1: "#3b82f6",
+  2: "#8b5cf6",
+  3: "#10b981",
+  4: "#f97316",
+  5: "#ec4899",
+};
+
+const GUIDELINES = [
+  "This test contains 40 questions across 5 domains of metacognition.",
+  "There are no right or wrong answers — respond based on how you actually think and learn.",
+  "Each question has 5 options ranging from Never to Always.",
+  "Your answers are saved automatically as you go - do not refresh or close the tab.",
+  "The test will enter full-screen mode to help you stay focused.",
+  "Use the Question Navigator on the right to jump to any question at any time.",
+  "Submit only after answering all 40 questions.",
+];
 
 export default function TestPage() {
   const router = useRouter();
-
-  const [questions, setQuestions]   = useState<Question[]>([]);
-  const [answers, setAnswers]       = useState<Record<string, number>>({});
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [answers, setAnswers] = useState<AnswerMap>(() => {
+    try {
+      const saved = localStorage.getItem(LS_KEY);
+      return saved ? (JSON.parse(saved) as AnswerMap) : {};
+    } catch {
+      return {};
+    }
+  });
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [activeSection, setActiveSection] = useState(0);
+  const [visited, setVisited]       = useState<Set<number>>(new Set([0]));
   const [loading, setLoading]       = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [testStarted, setTestStarted] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
+  // Mark as visited whenever question changes
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await testAPI.getQuestions();
-        setQuestions(res.data.questions || []);
-      } catch (err: any) {
-        toast.error(err.response?.data?.message || "Failed to load questions");
-      } finally {
-        setLoading(false);
-      }
-    })();
+    setVisited((prev) => new Set([...prev, currentIdx]));
+  }, [currentIdx]);
+
+  // Auto-save answers
+  useEffect(() => {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(answers)); } catch {}
+  }, [answers]);
+
+  // Fetch questions
+  useEffect(() => {
+    testAPI
+      .getQuestions()
+      .then((res) => setQuestions(res.data.questions || []))
+      .catch(() => toast.error("Failed to load questions"))
+      .finally(() => setLoading(false));
   }, []);
 
-  const goTo = useCallback((idx: number) => {
-    setCurrentIdx(idx);
-    setActiveSection(getSectionForIdx(idx));
-  }, []);
+  // ── Derived data ────────────────────────────────────────────
+  const sorted       = [...questions].sort((a, b) => a.questionNumber - b.questionNumber);
+  const total        = sorted.length;
+  const answeredCount = Object.keys(answers).length;
+  const allAnswered  = answeredCount === total && total > 0;
+  const currentQ     = sorted[currentIdx] ?? null;
 
-  const handleAnswer = (score: number) => {
-    const q = questions[currentIdx];
-    if (!q) return;
-    setAnswers(prev => ({ ...prev, [q._id]: score }));
+  // Domain groups for the navigator
+  type DomainGroup = { domainNumber: number; name: string; indices: number[] };
+  const domainGroups: DomainGroup[] = [];
+  const seenD: Record<number, number> = {};
+  sorted.forEach((q, idx) => {
+    if (seenD[q.domainNumber] === undefined) {
+      seenD[q.domainNumber] = domainGroups.length;
+      domainGroups.push({ domainNumber: q.domainNumber, name: q.domain, indices: [] });
+    }
+    domainGroups[seenD[q.domainNumber]].indices.push(idx);
+  });
+
+  const partLabel = currentQ
+    ? currentQ.domainNumber === 1 ? "Part I: Knowledge" : "Part II: Regulation"
+    : "";
+
+  // ── Handlers ───────────────────────────────────────────────
+  const handleSelect = (option: { label: string; score: number }) => {
+    if (!currentQ) return;
+    setAnswers((prev) => ({ ...prev, [currentQ._id]: { selectedOption: option.label, score: option.score } }));
   };
 
   const handleSubmit = async () => {
-    const total    = questions.length;
-    const answered = Object.keys(answers).length;
-
-    if (answered < total) {
-      const firstMissing = questions.findIndex(q => !answers[q._id]);
-      toast.error(`${total - answered} question(s) unanswered. Jumping to first unanswered.`);
-      goTo(firstMissing);
-      return;
-    }
-
-    setShowConfirm(true);
-  };
-
-  const confirmSubmit = async () => {
-    setShowConfirm(false);
+    if (!allAnswered) { toast.error("Please answer all questions before submitting"); return; }
     setSubmitting(true);
     try {
-      const payload = {
-        answers: questions.map(q => ({ questionId: q._id, score: answers[q._id] })),
-      };
-      const res = await testAPI.submit(payload);
+      const payload = sorted.map((q) => ({
+        questionId: q._id,
+        selectedOption: answers[q._id].selectedOption,
+        score: answers[q._id].score,
+      }));
+      const res = await testAPI.submit({ answers: payload });
       toast.success("Test submitted successfully!");
-      router.push(`/student/results/${res.data.result._id}`);
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to submit test");
+      try { localStorage.removeItem(LS_KEY); } catch {}
+      if (document.fullscreenElement) {
+        await document.exitFullscreen().catch(() => {});
+      }
+      router.push(`/student/results/${res.data.resultId}`);
+    } catch {
+      toast.error("Failed to submit. Please try again.");
       setSubmitting(false);
     }
   };
 
-  // ── Loading ──────────────────────────────────────────────────────────────
+  const handleStartTest = () => {
+    setTestStarted(true);
+    // fullscreen is triggered in useEffect below once the test div is mounted
+  };
 
-  if (loading) {
+  // Request fullscreen as soon as test UI mounts
+  useEffect(() => {
+    if (!testStarted) return;
+    const el = document.documentElement;
+    if (el.requestFullscreen) {
+      el.requestFullscreen().catch(() => { /* blocked by browser */ });
+    }
+  }, [testStarted]);
+
+  // ── Guidelines screen ───────────────────────────────────────
+  if (!testStarted) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <div className="spinner" />
-        <p className="text-sm text-gray-500">Loading test questions…</p>
-      </div>
-    );
-  }
-
-  if (questions.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-center gap-3">
-        <div className="w-14 h-14 bg-yellow-100 rounded-2xl flex items-center justify-center mx-auto">
-          <svg className="w-7 h-7 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-        </div>
-        <h3 className="font-semibold text-gray-900">No Questions Available</h3>
-        <p className="text-sm text-gray-500 max-w-sm">
-          The admin hasn&apos;t added enough questions yet. Please check back later.
-        </p>
-      </div>
-    );
-  }
-
-  // ── Derived state ────────────────────────────────────────────────────────
-
-  const currentQ      = questions[currentIdx];
-  const currentAnswer = currentQ ? answers[currentQ._id] : undefined;
-  const answeredCount = Object.keys(answers).length;
-  const allAnswered   = answeredCount === questions.length;
-  const progress      = Math.round((answeredCount / questions.length) * 100);
-
-  return (
-    <>
-      {/* ── Confirm dialog ─────────────────────────────────────────────────── */}
-      {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full mx-4 animate-fade-in">
-            <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          {/* Header band */}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-8 text-center">
+            <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
             </div>
-            <h3 className="text-lg font-bold text-gray-900 text-center mb-2">Submit Test?</h3>
-            <p className="text-sm text-gray-500 text-center mb-6">
-              You&apos;ve answered all 52 questions. Once submitted, you cannot change your answers.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Review Again
-              </button>
-              <button
-                onClick={confirmSubmit}
-                disabled={submitting}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50"
-              >
-                {submitting ? "Submitting…" : "Submit Now"}
-              </button>
-            </div>
+            <h1 className="text-2xl font-bold text-white">Thinking & Expression Skills Test</h1>
+            <p className="text-blue-100 mt-1.5 text-sm">Read the guidelines carefully before you begin</p>
           </div>
-        </div>
-      )}
 
-      <div className="animate-fade-in">
-        {/* ── Page header ──────────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-5 py-4 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">Metacognition Assessment</h1>
-            <p className="text-sm text-gray-700 mt-0.5">Answer all 52 questions honestly — there are no right or wrong answers</p>
-          </div>
-          <div className="flex items-center gap-4 flex-shrink-0">
-            {/* Progress */}
-            <div className="flex items-center gap-2">
-              <div className="w-28 bg-gray-100 rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full transition-all ${allAnswered ? "bg-emerald-500" : "bg-blue-500"}`}
-                  style={{ width: `${progress}%` }}
-                />
+          <div className="p-8">
+            {/* Stats row */}
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="bg-blue-50 rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-blue-600">40</p>
+                <p className="text-xs text-gray-500 mt-0.5 font-medium">Questions</p>
               </div>
-              <span className={`text-sm font-semibold tabular-nums ${allAnswered ? "text-emerald-600" : "text-gray-600"}`}>
-                {answeredCount}/{questions.length}
-              </span>
+              <div className="bg-purple-50 rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-purple-600">5</p>
+                <p className="text-xs text-gray-500 mt-0.5 font-medium">Domains</p>
+              </div>
+              <div className="bg-green-50 rounded-xl p-4 text-center">
+                <p className="text-2xl font-bold text-green-600">~15</p>
+                <p className="text-xs text-gray-500 mt-0.5 font-medium">Minutes</p>
+              </div>
             </div>
+
+            {/* Guidelines list */}
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Instructions</h2>
+            <div className="space-y-2.5 mb-8">
+              {GUIDELINES.map((g, i) => (
+                <div key={i} className="flex items-start gap-3 p-3.5 rounded-xl bg-gray-50 border border-gray-100">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold mt-0.5">
+                    {i + 1}
+                  </span>
+                  <p className="text-sm text-gray-700 leading-relaxed">{g}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Start button */}
             <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm ${
-                allAnswered && !submitting
-                  ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
-              }`}
+              onClick={handleStartTest}
+              disabled={loading}
+              className="w-full py-3.5 rounded-xl font-bold text-sm text-white bg-blue-600 hover:bg-blue-700 transition shadow-sm disabled:opacity-60 disabled:cursor-wait flex items-center justify-center gap-2"
             >
-              {submitting ? "Submitting…" : allAnswered ? "✓ Submit Test" : "Submit Test"}
+              {loading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  Loading questions…
+                </>
+              ) : (
+                <>
+                  Start Test
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </>
+              )}
             </button>
           </div>
         </div>
+      </div>
+    );
+  }
 
-        {/* ── Main area ────────────────────────────────────────────────────── */}
+  // ── Test UI (fullscreen container) ──────────────────────────
+  return (
+    <div
+      ref={containerRef}
+      className="fixed inset-0 z-50 bg-gray-50 overflow-y-auto"
+    >
+      <div className="p-6 space-y-4 max-w-screen-xl mx-auto">
+
+      {/* Header */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-6 py-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Metacognition Assessment</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Answer all {total} questions honestly — there are no right or wrong answers
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-semibold text-gray-500">{answeredCount}/{total}</span>
+          <button
+            onClick={handleSubmit}
+            disabled={!allAnswered || submitting}
+            className={`px-5 py-2 rounded-xl font-semibold text-sm transition-all ${
+              allAnswered && !submitting
+                ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
+                : "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+            }`}
+          >
+            {submitting ? "Submitting…" : "Submit Test"}
+          </button>
+        </div>
+      </div>
+
+      {/* Question area + navigator */}
+      {currentQ && (
         <div className="flex gap-4 items-start">
-          {/* Question + options */}
-          <div className="flex-1 min-w-0">
+
+          {/* ── Left: question card ── */}
+          <div className="flex-1 min-w-0 space-y-3">
+
             {/* Breadcrumb */}
-            <p className="text-sm text-gray-700 mb-3">
-              Part {SECTIONS[activeSection].part === "Knowledge" ? "I" : "II"}: {SECTIONS[activeSection].part}
-              {" → "}
-              {SECTIONS[activeSection].name}
-              {" · "}
-              Question {currentIdx + 1} of {questions.length}
+            <p className="text-sm text-gray-500 px-1">
+              <span className="font-medium text-gray-700">{partLabel}</span>
+              {" · Question "}{currentIdx + 1} of {total}
             </p>
 
-            {/* Question card */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mb-4">
-              <div className="flex items-start gap-3">
+            {/* Question */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+              <div className="flex items-start gap-4 mb-6">
                 <span
-                  className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold flex-shrink-0 ${
-                    currentAnswer
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-500"
-                  }`}
+                  className="flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm"
+                  style={{ backgroundColor: DOMAIN_COLOR[currentQ.domainNumber] }}
                 >
-                  {currentIdx + 1}
+                  {currentQ.questionNumber}
                 </span>
-                <p className="text-gray-900 text-[17px] leading-relaxed pt-1.5">
-                  {currentQ?.questionText}
+                <p className="text-gray-900 font-medium text-base leading-relaxed pt-2">
+                  {currentQ.questionText}
                 </p>
+              </div>
+
+              {/* Options */}
+              <div className="space-y-2.5">
+                {currentQ.options.map((opt) => {
+                  const isSelected = answers[currentQ._id]?.selectedOption === opt.label;
+                  return (
+                    <button
+                      key={opt.label}
+                      onClick={() => handleSelect({ label: opt.label, score: opt.score })}
+                      className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-xl border-2 text-left transition-all ${
+                        isSelected
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      {/* Radio */}
+                      <span
+                        className={`flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                          isSelected ? "border-blue-500" : "border-gray-300"
+                        }`}
+                      >
+                        {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />}
+                      </span>
+                      {/* Score bubble */}
+                      <span
+                        className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                          isSelected ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        {opt.score}
+                      </span>
+                      {/* Label */}
+                      <span className={`font-medium text-sm ${isSelected ? "text-blue-700" : "text-gray-800"}`}>
+                        {opt.text}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Score options */}
-            <div className="space-y-2.5">
-              {SCORE_OPTIONS.map(({ score, label, desc }) => {
-                const selected = currentAnswer === score;
-                return (
-                  <button
-                    key={score}
-                    onClick={() => handleAnswer(score)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left group ${
-                      selected
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-blue-200 hover:bg-gray-50"
-                    }`}
-                  >
-                    {/* Radio circle */}
-                    <div
-                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                        selected ? "border-blue-500 bg-blue-500" : "border-gray-300 group-hover:border-blue-300"
-                      }`}
-                    >
-                      {selected && <div className="w-2 h-2 bg-white rounded-full" />}
-                    </div>
-                    {/* Score badge */}
-                    <span
-                      className={`text-sm font-bold w-6 text-center flex-shrink-0 ${
-                        selected ? "text-blue-700" : "text-gray-400"
-                      }`}
-                    >
-                      {score}
-                    </span>
-                    {/* Labels */}
-                    <div>
-                      <p className={`text-sm font-semibold ${selected ? "text-blue-800" : "text-gray-800"}`}>
-                        {label}
-                      </p>
-                      <p className={`text-sm mt-0.5 ${selected ? "text-blue-500" : "text-gray-700"}`}>
-                        {desc}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Prev / Next navigation */}
-            <div className="flex items-center justify-between mt-6">
+            {/* Prev / Next */}
+            <div className="flex justify-between pt-1 px-1">
               <button
-                onClick={() => goTo(currentIdx - 1)}
+                onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))}
                 disabled={currentIdx === 0}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Previous
+                ← Previous
               </button>
-
-              <span className="text-sm text-gray-700">{currentIdx + 1} / {questions.length}</span>
-
-              {currentIdx < questions.length - 1 ? (
+              {currentIdx < total - 1 ? (
                 <button
-                  onClick={() => goTo(currentIdx + 1)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={() => setCurrentIdx((i) => i + 1)}
+                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition shadow-sm"
                 >
-                  Next
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  Next →
                 </button>
               ) : (
                 <button
                   onClick={handleSubmit}
-                  disabled={submitting}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                    allAnswered
-                      ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                  disabled={!allAnswered || submitting}
+                  className={`px-5 py-2 rounded-xl text-sm font-semibold transition ${
+                    allAnswered && !submitting
+                      ? "bg-green-600 text-white hover:bg-green-700 shadow-sm"
                       : "bg-gray-100 text-gray-400 cursor-not-allowed"
                   }`}
                 >
-                  {allAnswered ? "Finish & Submit" : "Answer All to Submit"}
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  {submitting ? "Submitting…" : "Submit Test ✓"}
                 </button>
               )}
             </div>
           </div>
 
-          {/* ── Right navigator panel ─────────────────────────────────────── */}
-          <div className="w-72 flex-shrink-0 bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sticky top-6">
-            <p className="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-3">
-              Question Navigator
-            </p>
+          {/* ── Right: Navigator ── */}
+          <div className="w-72 flex-shrink-0">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sticky top-4">
+              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+                Question Navigator
+              </p>
 
-            <div className="space-y-3">
-              {SECTIONS.map((s, si) => {
-                const start = SECTION_STARTS[si];
-                const end   = start + s.count;
-                const isKnow = s.part === "Knowledge";
-
-                return (
-                  <div key={s.name}>
-                    <p className={`text-[13px] font-bold uppercase tracking-wider mb-1.5 ${isKnow ? "text-blue-500" : "text-emerald-500"}`}>
-                      {s.name}
+              <div className="space-y-4">
+                {domainGroups.map((dg) => (
+                  <div key={dg.domainNumber}>
+                    {/* Domain heading — same font family as question, larger than chips */}
+                    <p
+                      className="text-sm font-bold mb-2"
+                      style={{ color: DOMAIN_COLOR[dg.domainNumber] }}
+                    >
+                      {dg.name}
                     </p>
-                    <div className="flex flex-wrap gap-1">
-                      {questions.slice(start, end).map((q, qi) => {
-                        const globalIdx  = start + qi;
+                    <div className="flex flex-wrap gap-1.5">
+                      {dg.indices.map((qIdx) => {
+                        const q         = sorted[qIdx];
                         const isAnswered = !!answers[q._id];
-                        const isCurrent  = globalIdx === currentIdx;
-
+                        const isCurrent  = qIdx === currentIdx;
+                        const isVisited  = visited.has(qIdx);
                         return (
                           <button
                             key={q._id}
-                            onClick={() => goTo(globalIdx)}
-                            title={`Q${globalIdx + 1}${isAnswered ? " ✓" : ""}`}
-                            className={`w-7 h-7 rounded-md text-[13px] font-bold transition-all ${
+                            onClick={() => setCurrentIdx(qIdx)}
+                            title={`Q${q.questionNumber}`}
+                            className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${
                               isCurrent
-                                ? "bg-orange-500 text-white ring-2 ring-orange-300"
+                                ? "text-white shadow-sm"
                                 : isAnswered
-                                ? "bg-green-500 text-white"
-                                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                ? "text-white hover:opacity-90"
+                                : isVisited
+                                ? "bg-red-100 text-red-600 hover:bg-red-200"
+                                : "bg-gray-100 text-gray-400 hover:bg-gray-200"
                             }`}
+                            style={
+                              isCurrent
+                                ? { backgroundColor: DOMAIN_COLOR[dg.domainNumber], outline: `2px solid ${DOMAIN_COLOR[dg.domainNumber]}`, outlineOffset: "2px" }
+                                : isAnswered
+                                ? { backgroundColor: "#16a34a" }
+                                : {}
+                            }
                           >
-                            {globalIdx + 1}
+                            {q.questionNumber}
                           </button>
                         );
                       })}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                ))}
+              </div>
 
-            {/* Legend */}
-            <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
-              {[
-                { color: "bg-orange-500", label: "Current" },
-                { color: "bg-green-500",  label: "Answered" },
-                { color: "bg-gray-100 border border-gray-200", label: "Not Answered" },
-              ].map(({ color, label }) => (
-                <div key={label} className="flex items-center gap-2">
-                  <div className={`w-3.5 h-3.5 rounded ${color}`} />
-                  <span className="text-[13px] text-gray-500">{label}</span>
+              {/* Legend */}
+              <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <span className="w-5 h-5 rounded-md flex-shrink-0 bg-green-600" />
+                  Answered
                 </div>
-              ))}
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <span className="w-5 h-5 rounded-md flex-shrink-0 bg-red-100 border border-red-300" />
+                  Not answered
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <span className="w-5 h-5 rounded-md flex-shrink-0 bg-gray-100 border border-gray-200" />
+                  Not visited
+                </div>
+              </div>
             </div>
-
-            {/* Mini submit button */}
-            {allAnswered && (
-              <button
-                onClick={handleSubmit}
-                className="mt-4 w-full py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors"
-              >
-                Submit Test ✓
-              </button>
-            )}
           </div>
+
         </div>
+      )}
       </div>
-    </>
+    </div>
   );
 }

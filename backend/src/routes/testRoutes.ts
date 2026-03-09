@@ -4,6 +4,7 @@ import {
   submitTest,
   getResult,
   getMyResults,
+  getAllResults,
 } from "../controllers/testController";
 import { authenticate } from "../middleware/auth";
 import { authorize } from "../middleware/authorize";
@@ -20,5 +21,8 @@ router.get("/my-results", authorize(USER_ROLE.STUDENT), getMyResults);
 
 // Shared: student sees own, admin sees any
 router.get("/results/:id", getResult);
+
+// Admin-only: list all results with student info
+router.get("/admin/results", authorize(USER_ROLE.ADMIN), getAllResults);
 
 export default router;

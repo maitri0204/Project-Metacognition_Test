@@ -1,51 +1,39 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-export type QuestionPart = "Knowledge" | "Regulation";
-
-export type QuestionCategory =
-  | "Declarative"
-  | "Procedural"
-  | "Conditional"
-  | "Planning"
-  | "Information Management"
-  | "Monitoring"
-  | "Debugging"
-  | "Evaluation";
+export interface IOption {
+  label: string;   // A, B, C, D, E
+  text: string;    // Never, Rarely, Sometimes, Often, Always
+  score: number;   // 1, 2, 3, 4, 5
+}
 
 export interface IQuestion extends Document {
+  questionNumber: number;
+  domain: string;
+  domainNumber: number;
+  parameter: string;
+  parameterNumber: number;
   questionText: string;
-  part: QuestionPart;
-  category: QuestionCategory;
-  orderIndex: number;
-  isActive: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
+  options: IOption[];
 }
+
+const optionSchema = new Schema<IOption>(
+  {
+    label: { type: String, required: true },
+    text: { type: String, required: true },
+    score: { type: Number, required: true },
+  },
+  { _id: false }
+);
 
 const questionSchema = new Schema<IQuestion>(
   {
-    questionText: { type: String, required: true, trim: true },
-    part: {
-      type: String,
-      enum: ["Knowledge", "Regulation"],
-      required: true,
-    },
-    category: {
-      type: String,
-      enum: [
-        "Declarative",
-        "Procedural",
-        "Conditional",
-        "Planning",
-        "Information Management",
-        "Monitoring",
-        "Debugging",
-        "Evaluation",
-      ],
-      required: true,
-    },
-    orderIndex: { type: Number, required: true, default: 0 },
-    isActive: { type: Boolean, default: true },
+    questionNumber: { type: Number, required: true, unique: true },
+    domain: { type: String, required: true },
+    domainNumber: { type: Number, required: true },
+    parameter: { type: String, required: true },
+    parameterNumber: { type: Number, required: true },
+    questionText: { type: String, required: true },
+    options: { type: [optionSchema], required: true },
   },
   { timestamps: true }
 );

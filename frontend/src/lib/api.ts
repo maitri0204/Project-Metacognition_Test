@@ -65,8 +65,13 @@ export const authAPI = {
 export const questionAPI = {
   getAll: () => api.get("/questions"),
 
-  add: (data: { questionText: string; category: string }) =>
-    api.post("/questions", data),
+  add: (data: {
+    questionText: string;
+    domain: string;
+    domainNumber: number;
+    parameter: string;
+    parameterNumber: number;
+  }) => api.post("/questions", data),
 
   update: (id: string, data: { questionText: string }) =>
     api.put(`/questions/${id}`, data),
@@ -74,16 +79,23 @@ export const questionAPI = {
   remove: (id: string) => api.delete(`/questions/${id}`),
 };
 
-// ─── Test API (student only) ───
+// ─── Test API (student) ───
 export const testAPI = {
   getQuestions: () => api.get("/test/questions"),
 
-  submit: (data: { answers: { questionId: string; score: number }[] }) =>
-    api.post("/test/submit", data),
+  submit: (data: {
+    answers: { questionId: string; selectedOption: string; score: number }[];
+  }) => api.post("/test/submit", data),
 
   getResult: (id: string) => api.get(`/test/results/${id}`),
 
   getMyResults: () => api.get("/test/my-results"),
+};
+
+// ─── Admin Test API ───
+export const adminTestAPI = {
+  getAllResults: () => api.get("/test/admin/results"),
+  getResult: (id: string) => api.get(`/test/results/${id}`),
 };
 
 export default api;

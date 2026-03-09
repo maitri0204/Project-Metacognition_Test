@@ -156,7 +156,7 @@ function LoginPageContent() {
             </div>
           </div>
           <h2 className="text-4xl font-bold text-gray-900 mb-2">
-            {step === "signup" ? "Create Account" : "Welcome Back"}
+            {step === "signup" ? "Create Account" : "Welcome"}
           </h2>
           <p className="text-gray-600">Metacognition Test Platform</p>
         </div>
@@ -221,7 +221,7 @@ function LoginPageContent() {
 
               <button
                 type="button"
-                onClick={() => setStep("signup")}
+                onClick={() => router.push("/signup")}
                 className="w-full flex justify-center py-3 px-4 border-2 border-blue-600 text-blue-600 font-semibold rounded-xl hover:bg-blue-50 transition-all duration-300 transform hover:scale-[1.02]"
               >
                 Create New Account

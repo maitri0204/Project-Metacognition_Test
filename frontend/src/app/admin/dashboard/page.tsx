@@ -2,142 +2,186 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { questionAPI } from "@/lib/api";
+import toast from "react-hot-toast";
+import { adminTestAPI } from "@/lib/api";
+import { TestResult, User } from "@/types";
 
 export default function AdminDashboard() {
-  const [totalQ, setTotalQ] = useState<number | null>(null);
-  const [knowledgeQ, setKnowledgeQ] = useState(0);
-  const [regulationQ, setRegulationQ] = useState(0);
+  const [results, setResults] = useState<TestResult[]>([]);
+  const [totalStudents, setTotalStudents] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    questionAPI
-      .getAll()
+    adminTestAPI
+      .getAllResults()
       .then((res) => {
-        const qs = res.data.questions || [];
-        setTotalQ(qs.length);
-        setKnowledgeQ(qs.filter((q: { part: string }) => q.part === "Knowledge").length);
-        setRegulationQ(qs.filter((q: { part: string }) => q.part === "Regulation").length);
+        setResults(res.data.results || []);
+        setTotalStudents(res.data.totalStudents ?? 0);
       })
-      .catch(() => setTotalQ(0));
+      .catch(() => toast.error("Failed to load student results"))
+      .finally(() => setLoading(false));
   }, []);
 
-  const isReady = totalQ === 52;
+  const filtered = results.filter((r) => {
+    const s = r.student as User;
+    const name = `${s?.firstName ?? ""} ${s?.lastName ?? ""}`.toLowerCase();
+    const email = (s?.email ?? "").toLowerCase();
+    const q = search.toLowerCase();
+    return name.includes(q) || email.includes(q);
+  });
+
+  const totalTests = results.length;
+  const avgScore =
+    results.length > 0
+      ? Math.round(results.reduce((acc, r) => acc + r.totalScore, 0) / results.length)
+      : 0;
 
   return (
-    <div className="animate-fade-in">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="text-gray-600 mt-1">Welcome to the Metacognition Test admin panel</p>
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Page title */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+        <p className="text-gray-500 mt-1">Manage and review all student assessments</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Total Students */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Students</p>
-              <p className="text-3xl font-bold text-gray-900 mt-1">0</p>
-            </div>
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+          <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
               <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-gray-900">{totalStudents}</p>
+              <p className="text-sm text-gray-500">Total Students</p>
             </div>
           </div>
         </div>
 
-        {/* Questions Added */}
-        <div className={`bg-white rounded-2xl p-6 border shadow-sm hover:shadow-lg transition-all duration-300 ${isReady ? "border-emerald-200" : "border-gray-100"}`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Questions Added</p>
-              <p className={`text-3xl font-bold mt-1 ${isReady ? "text-emerald-600" : "text-gray-900"}`}>
-                {totalQ === null ? "…" : `${totalQ}/52`}
-              </p>
-              {totalQ !== null && (
-                <div className="mt-2 bg-gray-100 rounded-full h-1.5 w-28">
-                  <div
-                    className={`h-1.5 rounded-full transition-all ${isReady ? "bg-emerald-500" : "bg-blue-500"}`}
-                    style={{ width: `${Math.min(((totalQ ?? 0) / 52) * 100, 100)}%` }}
-                  />
-                </div>
-              )}
-            </div>
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isReady ? "bg-emerald-100" : "bg-amber-100"}`}>
-              <svg className={`w-6 h-6 ${isReady ? "text-emerald-600" : "text-amber-600"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-gray-900">{totalTests}</p>
+              <p className="text-sm text-gray-500">Total Submissions</p>
             </div>
           </div>
         </div>
 
-        {/* Knowledge */}
-        <div className="bg-white rounded-2xl p-6 border border-blue-100 shadow-sm hover:shadow-lg transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Knowledge Qs</p>
-              <p className="text-3xl font-bold text-blue-700 mt-1">{knowledgeQ}/17</p>
-              <div className="mt-2 bg-blue-100 rounded-full h-1.5 w-28">
-                <div className="bg-blue-500 h-1.5 rounded-full transition-all" style={{ width: `${(knowledgeQ / 17) * 100}%` }} />
-              </div>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* Regulation */}
-        <div className="bg-white rounded-2xl p-6 border border-emerald-100 shadow-sm hover:shadow-lg transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Regulation Qs</p>
-              <p className="text-3xl font-bold text-emerald-700 mt-1">{regulationQ}/35</p>
-              <div className="mt-2 bg-emerald-100 rounded-full h-1.5 w-28">
-                <div className="bg-emerald-500 h-1.5 rounded-full transition-all" style={{ width: `${(regulationQ / 35) * 100}%` }} />
-              </div>
-            </div>
-            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
+            <div>
+              <p className="text-3xl font-bold text-gray-900">{avgScore}</p>
+              <p className="text-sm text-gray-500">Average Score /200</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Quick Action */}
-      <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <svg className="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                {isReady ? "All 52 questions are set up!" : `Set up the 52 assessment questions`}
-              </h3>
-              <p className="text-gray-500 text-sm mt-0.5">
-                {isReady
-                  ? "The metacognition test is ready for students. Knowledge: 17 qs (85 pts) · Regulation: 35 qs (175 pts)"
-                  : `${52 - (totalQ ?? 0)} question${52 - (totalQ ?? 0) !== 1 ? "s" : ""} remaining across Knowledge and Regulation parts.`}
-              </p>
-            </div>
-          </div>
-          <Link
-            href="/admin/questions"
-            className="flex-shrink-0 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            {isReady ? "Manage Questions" : "Add Questions"}
-          </Link>
+      {/* Student Results Table */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h2 className="text-lg font-bold text-gray-900">Student Submissions</h2>
+          <input
+            type="text"
+            placeholder="Search by name or email…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 w-full sm:w-72"
+          />
         </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-16 text-gray-400">
+            <p className="text-lg font-medium">No submissions found</p>
+            <p className="text-sm mt-1">Students haven't taken the test yet</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">#</th>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Student</th>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Email</th>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Total Score</th>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Knowledge</th>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Regulation</th>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Profile</th>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Date</th>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filtered.map((result, idx) => {
+                  const s = result.student as User;
+                  const ds = result.domainScores;
+                  const kPct = Math.round((ds.domain1 / 50) * 100);
+                  const rPct = Math.round(((ds.domain2 + ds.domain3 + ds.domain4 + ds.domain5) / 150) * 100);
+
+                  const profile =
+                    kPct >= 50 && rPct >= 50
+                      ? { label: "Expert Learner", color: "bg-green-100 text-green-700" }
+                      : kPct < 50 && rPct >= 50
+                      ? { label: "Reflective", color: "bg-blue-100 text-blue-700" }
+                      : kPct < 50 && rPct < 50
+                      ? { label: "Unaware", color: "bg-red-100 text-red-700" }
+                      : { label: "Strategic", color: "bg-yellow-100 text-yellow-700" };
+
+                  return (
+                    <tr key={result._id} className="hover:bg-gray-50 transition">
+                      <td className="px-6 py-4 text-gray-500">{idx + 1}</td>
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        {s?.firstName} {s?.middleName ? `${s.middleName} ` : ""}{s?.lastName}
+                      </td>
+                      <td className="px-6 py-4 text-gray-500">{s?.email}</td>
+                      <td className="px-6 py-4">
+                        <span className="font-bold text-gray-900">{result.totalScore}</span>
+                        <span className="text-gray-400 text-xs">/200</span>
+                      </td>
+                      <td className="px-6 py-4 text-blue-700 font-medium">{kPct}%</td>
+                      <td className="px-6 py-4 text-purple-700 font-medium">{rPct}%</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${profile.color}`}>
+                          {profile.label}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-500">
+                        {new Date(result.submittedAt).toLocaleDateString("en-IN", {
+                          day: "numeric", month: "short", year: "numeric",
+                        })}
+                      </td>
+                      <td className="px-6 py-4">
+                        <Link
+                          href={`/admin/results/${result._id}`}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition whitespace-nowrap"
+                        >
+                          View Score
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
