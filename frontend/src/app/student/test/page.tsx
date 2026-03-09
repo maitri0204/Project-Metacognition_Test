@@ -210,48 +210,6 @@ export default function TestPage() {
           </div>
         </div>
 
-        {/* ── Section tabs ─────────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-4 px-3 py-2.5 overflow-x-auto">
-          <div className="flex gap-1 min-w-max">
-            {SECTIONS.map((s, si) => {
-              const start   = SECTION_STARTS[si];
-              const end     = start + s.count;
-              const secAns  = questions.slice(start, end).filter(q => answers[q._id]).length;
-              const isActive = activeSection === si;
-              const isKnow  = s.part === "Knowledge";
-              const secFull = secAns === s.count;
-
-              return (
-                <button
-                  key={s.name}
-                  onClick={() => goTo(SECTION_STARTS[si])}
-                  className={`relative px-3 py-1.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                    isActive
-                      ? isKnow
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "bg-emerald-600 text-white shadow-sm"
-                      : secFull
-                      ? isKnow
-                        ? "bg-blue-50 text-blue-700"
-                        : "bg-emerald-50 text-emerald-700"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-                >
-                  {secFull && !isActive && (
-                    <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                  {s.name}
-                  <span className={`text-sm ${isActive ? "opacity-75" : "opacity-60"}`}>
-                    {secAns}/{s.count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* ── Main area ────────────────────────────────────────────────────── */}
         <div className="flex gap-4 items-start">
           {/* Question + options */}
@@ -267,9 +225,9 @@ export default function TestPage() {
 
             {/* Question card */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mb-4">
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-3">
                 <span
-                  className={`w-14 h-14 flex items-center justify-center rounded-xl text-2xl font-bold flex-shrink-0 ${
+                  className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold flex-shrink-0 ${
                     currentAnswer
                       ? "bg-green-100 text-green-700"
                       : "bg-gray-100 text-gray-500"
@@ -277,21 +235,21 @@ export default function TestPage() {
                 >
                   {currentIdx + 1}
                 </span>
-                <p className="text-gray-900 text-base leading-relaxed pt-2">
+                <p className="text-gray-900 text-[17px] leading-relaxed pt-1.5">
                   {currentQ?.questionText}
                 </p>
               </div>
             </div>
 
             {/* Score options */}
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {SCORE_OPTIONS.map(({ score, label, desc }) => {
                 const selected = currentAnswer === score;
                 return (
                   <button
                     key={score}
                     onClick={() => handleAnswer(score)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all text-left group ${
+                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left group ${
                       selected
                         ? "border-blue-500 bg-blue-50"
                         : "border-gray-200 hover:border-blue-200 hover:bg-gray-50"
@@ -307,7 +265,7 @@ export default function TestPage() {
                     </div>
                     {/* Score badge */}
                     <span
-                      className={`text-xs font-bold w-5 text-center flex-shrink-0 ${
+                      className={`text-sm font-bold w-6 text-center flex-shrink-0 ${
                         selected ? "text-blue-700" : "text-gray-400"
                       }`}
                     >
@@ -318,7 +276,7 @@ export default function TestPage() {
                       <p className={`text-sm font-semibold ${selected ? "text-blue-800" : "text-gray-800"}`}>
                         {label}
                       </p>
-                      <p className={`text-xs mt-0.5 ${selected ? "text-blue-500" : "text-gray-700"}`}>
+                      <p className={`text-sm mt-0.5 ${selected ? "text-blue-500" : "text-gray-700"}`}>
                         {desc}
                       </p>
                     </div>
@@ -369,6 +327,77 @@ export default function TestPage() {
                 </button>
               )}
             </div>
+          </div>
+
+          {/* ── Right navigator panel ─────────────────────────────────────── */}
+          <div className="w-72 flex-shrink-0 bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sticky top-6">
+            <p className="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-3">
+              Question Navigator
+            </p>
+
+            <div className="space-y-3">
+              {SECTIONS.map((s, si) => {
+                const start = SECTION_STARTS[si];
+                const end   = start + s.count;
+                const isKnow = s.part === "Knowledge";
+
+                return (
+                  <div key={s.name}>
+                    <p className={`text-[13px] font-bold uppercase tracking-wider mb-1.5 ${isKnow ? "text-blue-500" : "text-emerald-500"}`}>
+                      {s.name}
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {questions.slice(start, end).map((q, qi) => {
+                        const globalIdx  = start + qi;
+                        const isAnswered = !!answers[q._id];
+                        const isCurrent  = globalIdx === currentIdx;
+
+                        return (
+                          <button
+                            key={q._id}
+                            onClick={() => goTo(globalIdx)}
+                            title={`Q${globalIdx + 1}${isAnswered ? " ✓" : ""}`}
+                            className={`w-7 h-7 rounded-md text-[13px] font-bold transition-all ${
+                              isCurrent
+                                ? "bg-orange-500 text-white ring-2 ring-orange-300"
+                                : isAnswered
+                                ? "bg-green-500 text-white"
+                                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            }`}
+                          >
+                            {globalIdx + 1}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Legend */}
+            <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
+              {[
+                { color: "bg-orange-500", label: "Current" },
+                { color: "bg-green-500",  label: "Answered" },
+                { color: "bg-gray-100 border border-gray-200", label: "Not Answered" },
+              ].map(({ color, label }) => (
+                <div key={label} className="flex items-center gap-2">
+                  <div className={`w-3.5 h-3.5 rounded ${color}`} />
+                  <span className="text-[13px] text-gray-500">{label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Mini submit button */}
+            {allAnswered && (
+              <button
+                onClick={handleSubmit}
+                className="mt-4 w-full py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors"
+              >
+                Submit Test ✓
+              </button>
+            )}
           </div>
         </div>
       </div>
