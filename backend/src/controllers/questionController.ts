@@ -3,9 +3,10 @@ import Question from "../models/Question";
 import { AuthRequest } from "../middleware/auth";
 
 // GET /api/questions — admin only
-export const getQuestions = async (_req: AuthRequest, res: Response): Promise<void> => {
+export const getQuestions = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const questions = await Question.find().sort({ questionNumber: 1 });
+    const testType = (req.query.testType as string) || "student";
+    const questions = await Question.find({ testType }).sort({ questionNumber: 1 });
     res.status(200).json({ questions });
   } catch (error) {
     console.error("getQuestions error:", error);
@@ -16,12 +17,14 @@ export const getQuestions = async (_req: AuthRequest, res: Response): Promise<vo
 // POST /api/questions — admin only
 export const addQuestion = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    // Auto-assign the next questionNumber
-    const last = await Question.findOne().sort({ questionNumber: -1 }).select("questionNumber");
+    const testType = req.body.testType || "student";
+    // Auto-assign the next questionNumber within this testType
+    const last = await Question.findOne({ testType }).sort({ questionNumber: -1 }).select("questionNumber");
     const nextNumber = last ? last.questionNumber + 1 : 1;
 
     const question = new Question({
       ...req.body,
+      testType,
       questionNumber: nextNumber,
       options: [
         { label: "A", text: "Never",     score: 1 },

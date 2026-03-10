@@ -6,7 +6,14 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { User } from "@/types";
 
-const navItems = [
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+  children?: { label: string; href: string }[];
+}
+
+const navItems: NavItem[] = [
   {
     label: "Dashboard",
     href: "/student/dashboard",
@@ -26,13 +33,26 @@ const navItems = [
     ),
   },
   {
-    label: "My Results",
+    label: "Parent Assessment",
+    href: "/student/parent-test",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Results",
     href: "/student/results",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
       </svg>
     ),
+    children: [
+      { label: "My Results", href: "/student/results" },
+      { label: "Parent Results", href: "/student/parent-results" },
+    ],
   },
 ];
 
@@ -40,6 +60,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -55,11 +76,27 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Auto-expand Results if on a results page
+  useEffect(() => {
+    if (pathname.startsWith("/student/results") || pathname.startsWith("/student/parent-results")) {
+      setExpandedItems((prev) => new Set([...prev, "Results"]));
+    }
+  }, [pathname]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     toast.success("Logged out successfully");
     router.replace("/login");
+  };
+
+  const toggleExpand = (label: string) => {
+    setExpandedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
   };
 
   if (!user) {
@@ -77,7 +114,60 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         {/* Nav */}
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
+            const hasChildren = item.children && item.children.length > 0;
+            const isExpanded = expandedItems.has(item.label);
+            const isActive = hasChildren
+              ? item.children!.some((c) => pathname === c.href || pathname.startsWith(c.href + "/"))
+              : pathname.startsWith(item.href);
+
+            if (hasChildren) {
+              return (
+                <div key={item.label}>
+                  <button
+                    onClick={() => toggleExpand(item.label)}
+                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all ${
+                      isActive
+                        ? "bg-blue-50 text-blue-600 font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="text-sm flex-1 text-left">{item.label}</span>
+                    <svg
+                      className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {isExpanded && (
+                    <div className="ml-8 mt-1 space-y-0.5">
+                      {item.children!.map((child) => {
+                        const childActive = pathname === child.href ||
+                          (child.href === "/student/results" && pathname.startsWith("/student/results/")) ||
+                          (child.href === "/student/parent-results" && pathname.startsWith("/student/parent-results/"));
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className={`block px-3 py-2 rounded-lg text-sm transition-all ${
+                              childActive
+                                ? "bg-blue-50 text-blue-600 font-medium"
+                                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                            }`}
+                          >
+                            {child.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.href}

@@ -140,7 +140,7 @@ export default function SignupPage() {
           <h2 className="text-4xl font-bold text-gray-900 mb-2">
             {step === "form" ? "Create Account" : "Verify Email"}
           </h2>
-          <p className="text-gray-600">Metacognition Test Platform</p>
+          <p className="text-gray-600">Thinking & Expression Skills Test Platform</p>
         </div>
 
         {/* Card */}

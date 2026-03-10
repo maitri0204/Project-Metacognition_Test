@@ -18,8 +18,8 @@ export const sendOTPEmail = async (
   const transporter = createTransporter();
   const subject =
     type === "signup"
-      ? "Metacognition Test - Verify Your Account"
-      : "Metacognition Test - Login OTP";
+      ? "Thinking & Expression Skills Test - Verify Your Account"
+      : "Thinking & Expression Skills Test - Login OTP";
 
   const html = `
     <div style="font-family: 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; background: #f4f6fb; padding: 40px 20px;">
@@ -30,7 +30,7 @@ export const sendOTPEmail = async (
           </div>
         </div>
         <h2 style="text-align: center; color: #1a1d2e; margin-bottom: 8px;">
-          ${type === "signup" ? "Welcome to Metacognition Test!" : "Login Verification"}
+          ${type === "signup" ? "Welcome to Thinking & Expression Skills Test!" : "Login Verification"}
         </h2>
         <p style="text-align: center; color: #64748b; margin-bottom: 24px;">
           Hi ${name}, here is your OTP code:
@@ -48,7 +48,7 @@ export const sendOTPEmail = async (
   `;
 
   await transporter.sendMail({
-    from: `"Metacognition Test" <${process.env.EMAIL_USER}>`,
+    from: `"Thinking & Expression Skills Test" <${process.env.EMAIL_USER}>`,
     to: email,
     subject,
     html,

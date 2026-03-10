@@ -61,7 +61,7 @@ export default function Home() {
 
             {/* Subheading */}
             <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in">
-              Explore metacognition assessments, track your cognitive awareness,
+              Explore thinking & expression skills test, track your cognitive awareness,
               and improve your learning strategies — all in one powerful platform.
             </p>
 
@@ -169,10 +169,10 @@ export default function Home() {
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold">M</span>
               </div>
-              <span className="text-white font-semibold">Metacognition Test</span>
+              <span className="text-white font-semibold">Thinking & Expression Skills Test</span>
             </div>
             <p className="text-sm">
-              © {new Date().getFullYear()} Metacognition Test. All rights reserved.
+              © {new Date().getFullYear()} Thinking & Expression Skills Test. All rights reserved.
             </p>
           </div>
         </div>

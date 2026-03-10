@@ -5,6 +5,7 @@ import {
   getResult,
   getMyResults,
   getAllResults,
+  getStudentResults,
 } from "../controllers/testController";
 import { authenticate } from "../middleware/auth";
 import { authorize } from "../middleware/authorize";
@@ -24,5 +25,8 @@ router.get("/results/:id", getResult);
 
 // Admin-only: list all results with student info
 router.get("/admin/results", authorize(USER_ROLE.ADMIN), getAllResults);
+
+// Admin-only: get results for a specific student
+router.get("/student/:studentId", authorize(USER_ROLE.ADMIN), getStudentResults);
 
 export default router;

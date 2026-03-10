@@ -40,21 +40,16 @@ function QuadrantGraph({
   const kp = knowledgePct;
   const rp = regulationPct;
 
-  let hlX: number, hlY: number, hlW: number, hlH: number, hlColor: string, quadrantLabel: string;
+  let hlColor: string, quadrantLabel: string;
+  if (kp >= 50 && rp >= 50) { hlColor = "rgba(34,197,94,0.25)"; quadrantLabel = "Expert Learner"; }
+  else if (kp < 50 && rp >= 50) { hlColor = "rgba(59,130,246,0.25)"; quadrantLabel = "Reflective but Unstructured Learner"; }
+  else if (kp < 50 && rp < 50) { hlColor = "rgba(239,68,68,0.25)"; quadrantLabel = "Unaware Learner"; }
+  else { hlColor = "rgba(234,179,8,0.25)"; quadrantLabel = "Strategic Learner"; }
 
-  if (kp >= 50 && rp >= 50) {
-    hlX = midX; hlY = py; hlW = px - midX; hlH = midY - py;
-    hlColor = "rgba(34,197,94,0.25)"; quadrantLabel = "Expert Learner";
-  } else if (kp < 50 && rp >= 50) {
-    hlX = px; hlY = py; hlW = midX - px; hlH = midY - py;
-    hlColor = "rgba(59,130,246,0.25)"; quadrantLabel = "Reflective but Unstructured Learner";
-  } else if (kp < 50 && rp < 50) {
-    hlX = px; hlY = midY; hlW = midX - px; hlH = py - midY;
-    hlColor = "rgba(239,68,68,0.25)"; quadrantLabel = "Unaware Learner";
-  } else {
-    hlX = midX; hlY = midY; hlW = px - midX; hlH = py - midY;
-    hlColor = "rgba(234,179,8,0.25)"; quadrantLabel = "Strategic Learner";
-  }
+  const hlX = PAD_L;
+  const hlY = py;
+  const hlW = px - PAD_L;
+  const hlH = (PAD_T + plotH) - py;
 
   const hlBorder = hlColor.replace("0.25", "0.6");
   const gridPcts = [25, 50, 75];

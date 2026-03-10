@@ -158,7 +158,7 @@ function LoginPageContent() {
           <h2 className="text-4xl font-bold text-gray-900 mb-2">
             {step === "signup" ? "Create Account" : "Welcome"}
           </h2>
-          <p className="text-gray-600">Metacognition Test Platform</p>
+          <p className="text-gray-600">Thinking & Expression Skills Test Platform</p>
         </div>
 
         {/* Card */}
@@ -385,7 +385,7 @@ function LoginPageContent() {
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          © {new Date().getFullYear()} Metacognition Test. All rights reserved.
+          © {new Date().getFullYear()} Thinking & Expression Skills Test. All rights reserved.
         </p>
       </div>
     </div>

@@ -27,6 +27,7 @@ export interface Question {
   parameterNumber: number;
   questionText: string;
   options: Option[];
+  testType?: "student" | "parent";
 }
 
 export interface Answer {
@@ -47,6 +48,26 @@ export interface DomainScores {
 export interface TestResult {
   _id: string;
   student: User | string;
+  answers: Answer[];
+  domainScores: DomainScores;
+  totalScore: number;
+  submittedAt: string;
+  createdAt?: string;
+}
+
+export interface ParentInfo {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  mobile: string;
+  email: string;
+  relation: string;
+}
+
+export interface ParentTestResult {
+  _id: string;
+  student: User | string;
+  parentInfo: ParentInfo;
   answers: Answer[];
   domainScores: DomainScores;
   totalScore: number;

@@ -14,6 +14,7 @@ export interface IQuestion extends Document {
   parameterNumber: number;
   questionText: string;
   options: IOption[];
+  testType: "student" | "parent";
 }
 
 const optionSchema = new Schema<IOption>(
@@ -27,15 +28,18 @@ const optionSchema = new Schema<IOption>(
 
 const questionSchema = new Schema<IQuestion>(
   {
-    questionNumber: { type: Number, required: true, unique: true },
+    questionNumber: { type: Number, required: true },
     domain: { type: String, required: true },
     domainNumber: { type: Number, required: true },
     parameter: { type: String, required: true },
     parameterNumber: { type: Number, required: true },
     questionText: { type: String, required: true },
     options: { type: [optionSchema], required: true },
+    testType: { type: String, enum: ["student", "parent"], default: "student" },
   },
   { timestamps: true }
 );
+
+questionSchema.index({ testType: 1, questionNumber: 1 }, { unique: true });
 
 export default mongoose.model<IQuestion>("Question", questionSchema);

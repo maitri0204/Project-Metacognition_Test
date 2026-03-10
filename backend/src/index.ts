@@ -5,6 +5,7 @@ import connectDB from "./config/db";
 import authRoutes from "./routes/authRoutes";
 import questionRoutes from "./routes/questionRoutes";
 import testRoutes from "./routes/testRoutes";
+import parentTestRoutes from "./routes/parentTestRoutes";
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/test", testRoutes);
+app.use("/api/parent-test", parentTestRoutes);
 
 // Connect to MongoDB, then start server
 const startServer = async (): Promise<void> => {

@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Metacognition Test",
-  description: "Metacognition Test Platform",
+  title: "Thinking & Expression Skills Test",
+  description: "Thinking & Expression Skills Test Platform",
 };
 
 export default function RootLayout({

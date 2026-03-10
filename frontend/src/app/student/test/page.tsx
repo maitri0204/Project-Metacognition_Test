@@ -23,7 +23,7 @@ const DOMAIN_COLOR: Record<number, string> = {
 const GUIDELINES = [
   "This test contains 40 questions across 5 domains of metacognition.",
   "There are no right or wrong answers — respond based on how you actually think and learn.",
-  "Each question has 5 options ranging from Never to Always.",
+  "Each question has 5 options ranging from \u201cNever\u201d to \u201cAlways\u201d.",
   "Your answers are saved automatically as you go - do not refresh or close the tab.",
   "The test will enter full-screen mode to help you stay focused.",
   "Use the Question Navigator on the right to jump to any question at any time.",
@@ -215,9 +215,9 @@ export default function TestPage() {
       {/* Header */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-6 py-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Metacognition Assessment</h1>
+          <h1 className="text-xl font-bold text-gray-900">Thinking & Expression Skills Test</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Answer all {total} questions honestly — there are no right or wrong answers
+            Answer all {total} questions honestly - there are no right or wrong answers
           </p>
         </div>
         <div className="flex items-center gap-3">

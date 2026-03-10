@@ -63,7 +63,8 @@ export const authAPI = {
 
 // ─── Questions API (admin only) ───
 export const questionAPI = {
-  getAll: () => api.get("/questions"),
+  getAll: (testType: string = "student") =>
+    api.get("/questions", { params: { testType } }),
 
   add: (data: {
     questionText: string;
@@ -71,6 +72,7 @@ export const questionAPI = {
     domainNumber: number;
     parameter: string;
     parameterNumber: number;
+    testType?: string;
   }) => api.post("/questions", data),
 
   update: (id: string, data: { questionText: string }) =>
@@ -96,6 +98,35 @@ export const testAPI = {
 export const adminTestAPI = {
   getAllResults: () => api.get("/test/admin/results"),
   getResult: (id: string) => api.get(`/test/results/${id}`),
+  getStudentResults: (studentId: string) => api.get(`/test/student/${studentId}`),
+};
+
+// ─── Parent Test API (student) ───
+export const parentTestAPI = {
+  getQuestions: () => api.get("/parent-test/questions"),
+
+  submit: (data: {
+    parentInfo: {
+      firstName: string;
+      middleName?: string;
+      lastName: string;
+      mobile: string;
+      email: string;
+      relation: string;
+    };
+    answers: { questionId: string; selectedOption: string; score: number }[];
+  }) => api.post("/parent-test/submit", data),
+
+  getResult: (id: string) => api.get(`/parent-test/results/${id}`),
+
+  getMyResults: () => api.get("/parent-test/my-results"),
+};
+
+// ─── Admin Parent Test API ───
+export const adminParentTestAPI = {
+  getAllResults: () => api.get("/parent-test/admin/results"),
+  getResult: (id: string) => api.get(`/parent-test/results/${id}`),
+  getStudentParentResults: (studentId: string) => api.get(`/parent-test/student/${studentId}`),
 };
 
 export default api;

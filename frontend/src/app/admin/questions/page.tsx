@@ -15,11 +15,13 @@ const DOMAINS = [
 ] as const;
 
 type DomainNum = 1 | 2 | 3 | 4 | 5;
+type TestTypeToggle = "student" | "parent";
 
 export default function AdminQuestionsPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading]     = useState(true);
   const [activeTab, setActiveTab] = useState<DomainNum>(1);
+  const [testType, setTestType]   = useState<TestTypeToggle>("student");
 
   // Edit state
   const [editQuestion, setEditQuestion] = useState<Question | null>(null);
@@ -35,13 +37,13 @@ export default function AdminQuestionsPage() {
   const fetchQuestions = () => {
     setLoading(true);
     questionAPI
-      .getAll()
+      .getAll(testType)
       .then((res) => setQuestions(res.data.questions || []))
       .catch(() => toast.error("Failed to load questions"))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchQuestions(); }, []);
+  useEffect(() => { fetchQuestions(); }, [testType]);
 
   // ── Derive data for the active tab ──────────────────────────
   const activeDomain    = DOMAINS.find((d) => d.num === activeTab)!;
@@ -113,6 +115,7 @@ export default function AdminQuestionsPage() {
         domainNumber:    activeTab,
         parameter:       param.name,
         parameterNumber: addParamNum as number,
+        testType,
       });
       toast.success("Question added successfully");
       setShowAddModal(false);
@@ -129,9 +132,34 @@ export default function AdminQuestionsPage() {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Page header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Question Bank</h1>
-        <p className="text-gray-500 mt-1">{questions.length} questions across 5 domains</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Question Bank</h1>
+          <p className="text-gray-500 mt-1">{questions.length} {testType} questions across 5 {testType === "parent" ? "sections" : "domains"}</p>
+        </div>
+        {/* Student / Parent Toggle */}
+        <div className="flex items-center bg-gray-100 rounded-xl p-1">
+          <button
+            onClick={() => { setTestType("student"); setActiveTab(1); }}
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+              testType === "student"
+                ? "bg-white text-blue-700 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Student
+          </button>
+          <button
+            onClick={() => { setTestType("parent"); setActiveTab(1); }}
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+              testType === "parent"
+                ? "bg-white text-purple-700 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Parent
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -167,7 +195,7 @@ export default function AdminQuestionsPage() {
                         className="w-6 h-6 rounded-md flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
                         style={{ backgroundColor: isActive ? domain.color : domain.color + "99" }}
                       >
-                        D{domain.num}
+                        {testType === "parent" ? "S" : "D"}{domain.num}
                       </span>
                       <span className={isActive ? "font-semibold" : ""}>
                         {domain.name.replace("Metacognitive ", "")}
