@@ -24,6 +24,10 @@ import {
   HeartHandshake,
   School,
   ArrowRight,
+  ChevronRight,
+  Phone,
+  Mail,
+  MapPin,
 } from "lucide-react";
 
 /* ── Animation Variants ── */
@@ -85,12 +89,12 @@ const whyMatters = [
 ];
 
 const benefitsStudents = [
-  "Better understanding of how they learn",
-  "Stronger critical thinking skills",
-  "Improved problem-solving ability",
-  "Greater confidence in expressing ideas",
-  "Better study strategies",
-  "Reduced exam anxiety",
+  { icon: BookOpen, title: "Better Learning Understanding", desc: "Discover your personal learning style and work with it, not against it." },
+  { icon: Brain, title: "Stronger Critical Thinking", desc: "Develop the ability to analyze, question, and reason effectively." },
+  { icon: Puzzle, title: "Improved Problem-Solving", desc: "Learn systematic approaches to tackle complex academic challenges." },
+  { icon: MessageSquare, title: "Confident Expression", desc: "Communicate ideas clearly, both in writing and in conversation." },
+  { icon: Lightbulb, title: "Better Study Strategies", desc: "Adopt proven methods that make studying more focused and effective." },
+  { icon: Shield, title: "Reduced Exam Anxiety", desc: "Build mental resilience and face assessments with calm confidence." },
 ];
 
 const benefitsParents = [
@@ -178,7 +182,7 @@ export default function Home() {
             >
               Every Child Thinks Differently.{" "}
               <span className="text-[#0876b8]">
-                Discover the Beautiful Way Your Child&apos;s Mind Works.
+                <br />Discover the Beautiful Way Your Child&apos;s Mind Works.
               </span>
             </motion.h1>
 
@@ -186,7 +190,7 @@ export default function Home() {
               variants={fadeInUp}
               className="text-xl text-slate-600 mb-10 max-w-lg leading-relaxed"
             >
-              A powerful <span className="font-bold text-[#0e5080]">Metacognitive Assessment</span> designed to develop confident thinkers and independent learners.
+              A powerful <span className="font-bold text-[#0e5080]">Thinking & Expression Skills Test</span> designed to develop confident thinkers and independent learners.
             </motion.p>
 
             <motion.div variants={fadeInUp} className="flex flex-wrap gap-4">
@@ -216,25 +220,40 @@ export default function Home() {
             </motion.div>
           </motion.div>
 
-          {/* Right side illustration */}
+          {/* Right side – Student photo */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
-            className="relative z-10 hidden lg:flex items-center justify-center"
+            className="relative z-10 hidden lg:block"
           >
-            <div className="relative">
-              <div className="w-80 h-80 bg-gradient-to-br from-[#0876b8]/20 to-[#2083bf]/10 rounded-full flex items-center justify-center">
-                <Brain className="w-40 h-40 text-[#0876b8]/60" strokeWidth={1} />
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+              <img
+                src="/student-thinking.jpg"
+                alt="Student thinking deeply"
+                className="w-full h-[480px] object-cover object-top"
+              />
+              {/* blue tint overlay so it harmonises with the gradient bg */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0e5080]/25 via-transparent to-transparent" />
+            </div>
+            {/* Bottom-left floating badge */}
+            <div className="absolute -bottom-5 -left-6 bg-white rounded-2xl shadow-xl px-5 py-3 flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#6aacd4] to-[#0876b8] rounded-xl flex items-center justify-center shrink-0">
+                <Brain className="w-5 h-5 text-white" />
               </div>
-              <div className="absolute -top-4 -right-4 w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center animate-bounce-slow">
-                <Lightbulb className="w-10 h-10 text-amber-500" />
+              <div>
+                <p className="text-xs text-slate-500 leading-tight">Metacognitive</p>
+                <p className="text-sm font-bold text-slate-800 leading-tight">Assessment</p>
               </div>
-              <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center animate-float">
-                <Puzzle className="w-10 h-10 text-[#0876b8]" />
+            </div>
+            {/* Top-right floating badge */}
+            <div className="absolute -top-5 -right-6 bg-white rounded-2xl shadow-xl px-5 py-3 flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shrink-0">
+                <Lightbulb className="w-5 h-5 text-white" />
               </div>
-              <div className="absolute top-1/2 -right-8 w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center animate-float" style={{ animationDelay: "1s" }}>
-                <MessageSquare className="w-8 h-8 text-emerald-500" />
+              <div>
+                <p className="text-xs text-slate-500 leading-tight">Discover Your</p>
+                <p className="text-sm font-bold text-slate-800 leading-tight">Thinking Style</p>
               </div>
             </div>
           </motion.div>
@@ -264,24 +283,30 @@ export default function Home() {
           whileInView="visible"
           viewport={{ once: true }}
           variants={staggerContainer}
-          className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto"
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
           {[
-            "The child finds it hard to explain answers clearly",
-            "They memorize lessons without really understanding them",
-            "They feel scared or stressed during exams",
-            "They lack confidence in their thinking and problem-solving",
-            "They are not sure how to study in the right way",
-          ].map((item, i) => (
-            <motion.div
-              key={i}
-              variants={scaleIn}
-              className="flex items-start gap-4 p-5 rounded-2xl bg-red-50/60 border border-red-100"
-            >
-              <AlertTriangle className="w-6 h-6 text-red-400 mt-0.5 shrink-0" />
-              <p className="text-slate-700 text-lg">{item}</p>
-            </motion.div>
-          ))}
+            { icon: MessageSquare, title: "Can't Explain Answers", desc: "The child finds it hard to express what they have studied, even when they know it." },
+            { icon: BookOpen, title: "Memorize Without Understanding", desc: "They recall lessons word-for-word but miss the deeper meaning behind concepts." },
+            { icon: AlertTriangle, title: "Exam Fear & Anxiety", desc: "They feel scared or stressed during exams, which affects their true performance." },
+            { icon: Brain, title: "Low Thinking Confidence", desc: "They lack confidence in their own thinking and problem-solving abilities." },
+            { icon: HelpCircle, title: "No Effective Study Method", desc: "They are not sure how to study in the right way, leading to wasted effort." },
+          ].map((item, i) => {
+            const Icon = item.icon;
+            return (
+              <motion.div
+                key={i}
+                variants={scaleIn}
+                className="p-8 rounded-[2.5rem] bg-amber-50/40 border border-amber-100 text-center hover:bg-white hover:shadow-xl transition-all group"
+              >
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-xl mb-5 group-hover:scale-110 transition-transform">
+                  <Icon className="text-white" size={28} />
+                </div>
+                <h3 className="text-lg font-bold mb-2 text-slate-800">{item.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+              </motion.div>
+            );
+          })}
         </motion.div>
 
         <motion.div
@@ -597,18 +622,24 @@ export default function Home() {
           whileInView="visible"
           viewport={{ once: true }}
           variants={staggerContainer}
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto"
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
-          {benefitsStudents.map((b, i) => (
-            <motion.div
-              key={i}
-              variants={scaleIn}
-              className="flex items-center gap-4 p-5 rounded-2xl bg-emerald-50/60 border border-emerald-100 hover:shadow-lg transition-all"
-            >
-              <CheckCircle2 className="w-6 h-6 text-emerald-500 shrink-0" />
-              <p className="text-slate-700 font-medium">{b}</p>
-            </motion.div>
-          ))}
+          {benefitsStudents.map((b, i) => {
+            const Icon = b.icon;
+            return (
+              <motion.div
+                key={i}
+                variants={scaleIn}
+                className="p-8 rounded-[2.5rem] bg-slate-50/50 border border-slate-100 text-center hover:bg-white hover:shadow-xl transition-all group"
+              >
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-400 to-[#0876b8] flex items-center justify-center shadow-xl mb-5 group-hover:scale-110 transition-transform">
+                  <Icon className="text-white" size={28} />
+                </div>
+                <h3 className="text-xl font-bold mb-2">{b.title}</h3>
+                <p className="text-slate-500 text-base leading-relaxed">{b.desc}</p>
+              </motion.div>
+            );
+          })}
         </motion.div>
       </section>
 
@@ -755,17 +786,107 @@ export default function Home() {
       </section>
 
       {/* ─────────────────── FOOTER ─────────────────── */}
-      <footer className="bg-gray-900 text-gray-200 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#0876b8] to-[#2083bf] rounded-lg flex items-center justify-center">
-                <Brain className="w-5 h-5 text-white" />
+      <footer
+        style={{ background: "linear-gradient(180deg, #0a0f1a 0%, #0d1321 100%)" }}
+        className="text-slate-400 pt-16 pb-8"
+      >
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid md:grid-cols-4 gap-10 pb-12 border-b border-slate-800/60">
+            {/* Brand */}
+            <div className="md:col-span-2">
+              <div className="mb-5">
+                <div className="inline-block bg-white rounded-xl px-3 py-2 shadow-sm">
+                  <img
+                    src="/logo.png"
+                    alt="Thinking & Expression Skills Test"
+                    className="h-10 w-auto object-contain"
+                  />
+                </div>
               </div>
-              <span className="text-white font-semibold">TEST — Thinking &amp; Expression Skills Test</span>
+              <p className="text-sm leading-relaxed text-slate-500 max-w-md mb-6">
+                Thinking &amp; Expression Skills Test &mdash; A metacognitive assessment built to help
+                every child discover how they think, learn, and express. Designed for schools, parents,
+                and educators who believe in nurturing confident thinkers.
+              </p>
+              <div className="flex items-center gap-4">
+                <a
+                  href="https://admitra.io"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+                >
+                  admitra.io
+                </a>
+              </div>
             </div>
-            <p className="text-sm">
-              © {new Date().getFullYear()} Thinking &amp; Expression Skills Test. All rights reserved.
+
+            {/* Quick Links */}
+            <div>
+              <h4 className="text-white font-semibold mb-5 text-sm uppercase tracking-wider">
+                Quick Links
+              </h4>
+              <ul className="space-y-3">
+                {[
+                  { label: "Home", href: "/" },
+                  { label: "Take the Test", href: "/signup" },
+                  { label: "Sign In", href: "/login" },
+                  { label: "Privacy Policy", href: "#" },
+                  { label: "Terms & Conditions", href: "#" },
+                ].map((link, i) => (
+                  <li key={i}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-slate-500 hover:text-cyan-400 transition-colors flex items-center gap-2"
+                    >
+                      <ChevronRight size={14} className="text-slate-600" />
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div>
+              <h4 className="text-white font-semibold mb-5 text-sm uppercase tracking-wider">
+                Contact
+              </h4>
+              <ul className="space-y-4">
+                <li>
+                  <p className="text-xs text-slate-600 uppercase tracking-wider mb-1">Have any questions?</p>
+                  <a
+                    href="tel:+917046673033"
+                    className="flex items-center gap-3 text-sm text-slate-400 hover:text-cyan-400 transition-colors"
+                  >
+                    <Phone size={15} className="text-cyan-400 shrink-0" />
+                    +91 70466 73033
+                  </a>
+                </li>
+                <li>
+                  <p className="text-xs text-slate-600 uppercase tracking-wider mb-1">Email</p>
+                  <a
+                    href="mailto:hello@admitra.io"
+                    className="flex items-center gap-3 text-sm text-slate-400 hover:text-cyan-400 transition-colors"
+                  >
+                    <Mail size={15} className="text-cyan-400 shrink-0" />
+                    hello@admitra.io
+                  </a>
+                </li>
+                <li className="flex items-start gap-3 text-sm text-slate-500">
+                  <MapPin size={15} className="text-cyan-400 shrink-0 mt-0.5" />
+                  India
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Copyright */}
+          <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-slate-600">
+              &copy; {new Date().getFullYear()} All Rights Reserved by ADMITra
+            </p>
+            <p className="text-xs text-slate-600">
+              Thinking &amp; Expression Skills Test &mdash; A product of ADMITra
             </p>
           </div>
         </div>
