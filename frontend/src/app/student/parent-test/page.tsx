@@ -388,7 +388,8 @@ export default function ParentTestPage() {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-50 bg-gray-50 overflow-y-auto"
+      className="fixed inset-0 z-50 bg-gray-50 overflow-y-auto select-none"
+      onCopy={(e) => e.preventDefault()}
     >
       <div className="p-6 space-y-4 max-w-screen-xl mx-auto">
         {/* Header */}
