@@ -50,11 +50,21 @@ function QuadrantGraph({
   else if (kp < 50 && rp < 50) { hlColor = "rgba(239,68,68,0.25)"; quadrantLabel = "Unaware Learner"; }
   else { hlColor = "rgba(234,179,8,0.25)"; quadrantLabel = "Strategic Learner"; }
 
-  // Highlight: full rectangle from axes origin to the data point
-  const hlX = PAD_L;
-  const hlY = py;
-  const hlW = px - PAD_L;
-  const hlH = (PAD_T + plotH) - py;
+  // Highlight: area under the point within its quadrant only
+  let hlX: number, hlY: number, hlW: number, hlH: number;
+  if (kp >= 50 && rp >= 50) {
+    // Expert Learner (top-right): x from midX→px, y from py down to midY
+    hlX = midX; hlY = py; hlW = px - midX; hlH = midY - py;
+  } else if (kp < 50 && rp >= 50) {
+    // Reflective (top-left): x from PAD_L→px, y from py down to midY
+    hlX = PAD_L; hlY = py; hlW = px - PAD_L; hlH = midY - py;
+  } else if (kp < 50 && rp < 50) {
+    // Unaware (bottom-left): x from PAD_L→px, y from py down to bottom
+    hlX = PAD_L; hlY = py; hlW = px - PAD_L; hlH = (PAD_T + plotH) - py;
+  } else {
+    // Strategic (bottom-right): x from midX→px, y from py down to bottom
+    hlX = midX; hlY = py; hlW = px - midX; hlH = (PAD_T + plotH) - py;
+  }
 
   const hlBorder = hlColor.replace("0.25", "0.6");
 
@@ -104,8 +114,8 @@ function QuadrantGraph({
 
         {/* Quadrant corner labels */}
         {qLabels.map((ql, i) => (
-          <text key={i} x={ql.x} y={ql.y} fill={ql.color} fontSize={12}
-            fontWeight={600} textAnchor="middle" opacity={0.6}>
+          <text key={i} x={ql.x} y={ql.y} fill={ql.color} fontSize={16}
+            fontWeight={800} textAnchor="middle" opacity={1}>
             {ql.text}
           </text>
         ))}
@@ -332,8 +342,8 @@ export default function StudentResultDetailPage() {
         </div>
       </div>
 
-      {/* Domain-wise Q&A */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      {/* Domain-wise Q&A — hidden on student side */}
+      {false && <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-6 pt-6 pb-0">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Your Answers - Domain Wise</h2>
         </div>
@@ -475,7 +485,7 @@ export default function StudentResultDetailPage() {
             })()}
           </>
         )}
-      </div>
+      </div>}
     </div>
   );
 }

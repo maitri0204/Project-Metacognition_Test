@@ -49,10 +49,17 @@ function QuadrantGraph({
   else if (kp < 50 && rp < 50) { hlColor = "rgba(239,68,68,0.25)"; quadrantLabel = "Unaware Learner"; }
   else { hlColor = "rgba(234,179,8,0.25)"; quadrantLabel = "Strategic Learner"; }
 
-  const hlX = PAD_L;
-  const hlY = py;
-  const hlW = px - PAD_L;
-  const hlH = (PAD_T + plotH) - py;
+  // Highlight: area under the point within its quadrant only
+  let hlX: number, hlY: number, hlW: number, hlH: number;
+  if (kp >= 50 && rp >= 50) {
+    hlX = midX; hlY = py; hlW = px - midX; hlH = midY - py;
+  } else if (kp < 50 && rp >= 50) {
+    hlX = PAD_L; hlY = py; hlW = px - PAD_L; hlH = midY - py;
+  } else if (kp < 50 && rp < 50) {
+    hlX = PAD_L; hlY = py; hlW = px - PAD_L; hlH = (PAD_T + plotH) - py;
+  } else {
+    hlX = midX; hlY = py; hlW = px - midX; hlH = (PAD_T + plotH) - py;
+  }
 
   const hlBorder = hlColor.replace("0.25", "0.6");
 
@@ -82,7 +89,7 @@ function QuadrantGraph({
           </>
         )}
         {qLabels.map((ql, i) => (
-          <text key={i} x={ql.x} y={ql.y} fill={ql.color} fontSize={12} fontWeight={600} textAnchor="middle" opacity={0.6}>{ql.text}</text>
+          <text key={i} x={ql.x} y={ql.y} fill={ql.color} fontSize={16} fontWeight={800} textAnchor="middle" opacity={1}>{ql.text}</text>
         ))}
         <line x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={PAD_T + plotH} stroke="#6b7280" strokeWidth={2} />
         <line x1={PAD_L} y1={PAD_T + plotH} x2={PAD_L + plotW} y2={PAD_T + plotH} stroke="#6b7280" strokeWidth={2} />
@@ -273,8 +280,8 @@ export default function ParentResultDetailPage() {
         </div>
       </div>
 
-      {/* Section-wise Q&A (no parameter grouping for parent) */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      {/* Section-wise Q&A — hidden on student side */}
+      {false && <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-6 pt-6 pb-0">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Answers - Section Wise</h2>
         </div>
@@ -388,7 +395,7 @@ export default function ParentResultDetailPage() {
             })()}
           </>
         )}
-      </div>
+      </div>}
     </div>
   );
 }

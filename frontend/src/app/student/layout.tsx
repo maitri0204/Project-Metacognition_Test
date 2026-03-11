@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { User } from "@/types";
+import { testAPI } from "@/lib/api";
 
 interface NavItem {
   label: string;
@@ -61,6 +62,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [hasCompletedTest, setHasCompletedTest] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -70,6 +72,10 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       const parsed = JSON.parse(userStr);
       if (parsed.role !== "STUDENT") { router.replace("/admin/dashboard"); return; }
       setUser(parsed);
+      // Check if student has at least 1 completed test
+      testAPI.getMyResults().then((res) => {
+        if (res.data?.results?.length > 0) setHasCompletedTest(true);
+      }).catch(() => {});
     } catch {
       router.replace("/login");
     }
@@ -113,7 +119,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       <aside className="w-64 bg-white border-r border-gray-200 h-[calc(100vh-4rem)] flex flex-col fixed left-0 top-16 z-30">
         {/* Nav */}
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
+          {navItems.filter((item) => item.label !== "Parent Assessment" || hasCompletedTest).map((item) => {
             const hasChildren = item.children && item.children.length > 0;
             const isExpanded = expandedItems.has(item.label);
             const isActive = hasChildren

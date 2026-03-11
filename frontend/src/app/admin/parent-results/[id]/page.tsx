@@ -35,10 +35,17 @@ function QuadrantGraph({ knowledgePct, regulationPct }: { knowledgePct: number; 
   else if (kp < 50 && rp < 50) { hlColor = "rgba(239,68,68,0.25)"; quadrantLabel = "Unaware Learner"; }
   else { hlColor = "rgba(234,179,8,0.25)"; quadrantLabel = "Strategic Learner"; }
 
-  const hlX = PAD_L;
-  const hlY = py;
-  const hlW = px - PAD_L;
-  const hlH = (PAD_T + plotH) - py;
+  // Highlight: area under the point within its quadrant only
+  let hlX: number, hlY: number, hlW: number, hlH: number;
+  if (kp >= 50 && rp >= 50) {
+    hlX = midX; hlY = py; hlW = px - midX; hlH = midY - py;
+  } else if (kp < 50 && rp >= 50) {
+    hlX = PAD_L; hlY = py; hlW = px - PAD_L; hlH = midY - py;
+  } else if (kp < 50 && rp < 50) {
+    hlX = PAD_L; hlY = py; hlW = px - PAD_L; hlH = (PAD_T + plotH) - py;
+  } else {
+    hlX = midX; hlY = py; hlW = px - midX; hlH = (PAD_T + plotH) - py;
+  }
   const hlBorder = hlColor.replace("0.25", "0.6");
   const qLabels = [
     { x: PAD_L + plotW * 0.75, y: PAD_T + plotH * 0.15, text: "Expert Learner", color: "#16a34a" },
@@ -54,7 +61,7 @@ function QuadrantGraph({ knowledgePct, regulationPct }: { knowledgePct: number; 
         <rect x={PAD_L} y={PAD_T} width={plotW} height={plotH} fill="#f9fafb" rx={4} />
         {gridPcts.map((pct) => (<g key={pct}><line x1={toSvgX(pct)} y1={PAD_T} x2={toSvgX(pct)} y2={PAD_T+plotH} stroke="#e5e7eb" strokeWidth={pct===50?1.5:1} strokeDasharray={pct===50?"0":"4,3"}/><line x1={PAD_L} y1={toSvgY(pct)} x2={PAD_L+plotW} y2={toSvgY(pct)} stroke="#e5e7eb" strokeWidth={pct===50?1.5:1} strokeDasharray={pct===50?"0":"4,3"}/></g>))}
         {hlW > 0 && hlH > 0 && (<><rect x={hlX} y={hlY} width={hlW} height={hlH} fill={hlColor} rx={2}/><rect x={hlX} y={hlY} width={hlW} height={hlH} fill="none" stroke={hlBorder} strokeWidth={1.5} rx={2}/></>)}
-        {qLabels.map((ql, i) => (<text key={i} x={ql.x} y={ql.y} fill={ql.color} fontSize={12} fontWeight={600} textAnchor="middle" opacity={0.6}>{ql.text}</text>))}
+        {qLabels.map((ql, i) => (<text key={i} x={ql.x} y={ql.y} fill={ql.color} fontSize={16} fontWeight={800} textAnchor="middle" opacity={1}>{ql.text}</text>))}
         <line x1={PAD_L} y1={PAD_T} x2={PAD_L} y2={PAD_T+plotH} stroke="#6b7280" strokeWidth={2}/><line x1={PAD_L} y1={PAD_T+plotH} x2={PAD_L+plotW} y2={PAD_T+plotH} stroke="#6b7280" strokeWidth={2}/>
         {[0,25,50,75,100].map((pct)=>(<g key={pct}><text x={toSvgX(pct)} y={PAD_T+plotH+18} fill="#6b7280" fontSize={11} textAnchor="middle">{pct}</text><text x={PAD_L-10} y={toSvgY(pct)+4} fill="#6b7280" fontSize={11} textAnchor="end">{pct}</text></g>))}
         <text x={PAD_L+plotW/2} y={H-6} fill="#374151" fontSize={13} fontWeight={700} textAnchor="middle">Knowledge (Awareness) %</text>
