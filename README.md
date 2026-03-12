@@ -142,7 +142,7 @@ Create a `.env` file inside `backend/`:
 
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/Metacognition_test
+MONGODB_URI=your_mongodb_url
 JWT_SECRET=your_jwt_secret_here
 EMAIL_USER=your_gmail@gmail.com
 EMAIL_PASS=your_gmail_app_password
