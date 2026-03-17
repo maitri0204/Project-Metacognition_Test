@@ -46,6 +46,9 @@ export const authAPI = {
     country?: string;
     state?: string;
     city?: string;
+    classGrade?: string;
+    schoolName?: string;
+    board?: string;
   }) => api.post("/auth/signup", data),
 
   verifySignupOTP: (data: { email: string; otp: string }) =>

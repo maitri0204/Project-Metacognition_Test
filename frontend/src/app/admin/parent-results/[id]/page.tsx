@@ -167,6 +167,8 @@ export default function AdminParentResultDetailPage() {
           <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Relation</p><p className="text-sm font-medium text-gray-900 mt-0.5">{p.relation}</p></div>
           <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Email</p><p className="text-sm font-medium text-gray-900 mt-0.5">{p.email}</p></div>
           <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Mobile</p><p className="text-sm font-medium text-gray-900 mt-0.5">{p.mobile}</p></div>
+          <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">City</p><p className="text-sm font-medium text-gray-900 mt-0.5">{s?.city || "—"}</p></div>
+          <div><p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">State</p><p className="text-sm font-medium text-gray-900 mt-0.5">{s?.state || "—"}</p></div>
         </div>
       </div>
 

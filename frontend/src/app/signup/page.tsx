@@ -20,6 +20,10 @@ export default function SignupPage() {
   const [country, setCountry] = useState("");
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
+  const [classGrade, setClassGrade] = useState("");
+  const [schoolName, setSchoolName] = useState("");
+  const [board, setBoard] = useState("");
+  const [boardOther, setBoardOther] = useState("");
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [loading, setLoading] = useState(false);
 
@@ -65,6 +69,9 @@ export default function SignupPage() {
         country: selectedCountry,
         state: selectedState,
         city: city.trim(),
+        classGrade: classGrade.trim(),
+        schoolName: schoolName.trim(),
+        board: board === "Other" ? boardOther.trim() : board,
       });
       toast.success(res.data.message || "Account created! Check your email for OTP.");
       setStep("otp");
@@ -237,6 +244,67 @@ export default function SignupPage() {
                     className="block w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400"
                   />
                 </div>
+              </div>
+
+              {/* Class/Grade + School Name Row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Class / Grade
+                  </label>
+                  <input
+                    type="text"
+                    value={classGrade}
+                    onChange={(e) => setClassGrade(e.target.value)}
+                    placeholder="e.g. 10th, 12th"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    School Name
+                  </label>
+                  <input
+                    type="text"
+                    value={schoolName}
+                    onChange={(e) => setSchoolName(e.target.value)}
+                    placeholder="Your school name"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              {/* Board */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Board</label>
+                <div className="relative">
+                  <select
+                    value={board}
+                    onChange={(e) => { setBoard(e.target.value); if (e.target.value !== "Other") setBoardOther(""); }}
+                    className={selectClass}
+                  >
+                    <option value="">Select Board</option>
+                    <option value="CBSE">CBSE</option>
+                    <option value="State Board">State Board</option>
+                    <option value="ICSE">ICSE</option>
+                    <option value="IGCSE">IGCSE</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+                {board === "Other" && (
+                  <input
+                    type="text"
+                    value={boardOther}
+                    onChange={(e) => setBoardOther(e.target.value)}
+                    placeholder="Enter your board name"
+                    className={`${inputClass} mt-2`}
+                  />
+                )}
               </div>
 
               {/* Country */}

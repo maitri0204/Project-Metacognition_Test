@@ -15,7 +15,7 @@ import { sendOTPEmail } from "../utils/email";
 // POST /api/auth/signup
 export const signup = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { firstName, middleName, lastName, email, mobile, country, state, city } = req.body;
+    const { firstName, middleName, lastName, email, mobile, country, state, city, classGrade, schoolName, board } = req.body;
 
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
@@ -35,6 +35,9 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       country: country?.trim() || "",
       state: state?.trim() || "",
       city: city?.trim() || "",
+      classGrade: classGrade?.trim() || "",
+      schoolName: schoolName?.trim() || "",
+      board: board?.trim() || "",
       role: USER_ROLE.STUDENT,
       otp: hashedOtp,
       otpExpires: getOTPExpiration(10),

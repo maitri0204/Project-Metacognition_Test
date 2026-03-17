@@ -160,6 +160,7 @@ export const getStudentResults = async (req: AuthRequest, res: Response): Promis
     }
 
     const results = await TestResult.find({ student: studentId })
+      .populate("student", "firstName middleName lastName email mobile city state country classGrade schoolName board")
       .sort({ submittedAt: -1 });
     res.status(200).json({ results });
   } catch (error) {

@@ -10,6 +10,9 @@ export interface IUser extends Document {
   country?: string;
   state?: string;
   city?: string;
+  classGrade?: string;
+  schoolName?: string;
+  board?: string;
   role: USER_ROLE;
   isVerified: boolean;
   isActive: boolean;
@@ -34,6 +37,9 @@ const userSchema = new Schema<IUser>(
     country: { type: String, required: false },
     state: { type: String, required: false },
     city: { type: String, required: false },
+    classGrade: { type: String, required: false },
+    schoolName: { type: String, required: false },
+    board: { type: String, required: false },
     role: {
       type: String,
       enum: Object.values(USER_ROLE),

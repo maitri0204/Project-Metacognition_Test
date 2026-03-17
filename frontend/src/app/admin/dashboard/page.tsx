@@ -172,6 +172,7 @@ export default function AdminDashboard() {
                   <th className="text-left px-6 py-3 font-semibold text-gray-600">#</th>
                   <th className="text-left px-6 py-3 font-semibold text-gray-600">Student</th>
                   <th className="text-left px-6 py-3 font-semibold text-gray-600">Email</th>
+                  <th className="text-left px-6 py-3 font-semibold text-gray-600">Mobile</th>
                   <th className="text-left px-6 py-3 font-semibold text-gray-600">Student Tests</th>
                   <th className="text-left px-6 py-3 font-semibold text-gray-600">Parent Tests</th>
                   <th className="text-left px-6 py-3 font-semibold text-gray-600">Last Activity</th>
@@ -188,6 +189,7 @@ export default function AdminDashboard() {
                         {s.firstName} {s.middleName ? `${s.middleName} ` : ""}{s.lastName}
                       </td>
                       <td className="px-6 py-4 text-gray-500">{s.email}</td>
+                      <td className="px-6 py-4 text-gray-500">{s.mobile || "—"}</td>
                       <td className="px-6 py-4">
                         {row.studentTests > 0 ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold">

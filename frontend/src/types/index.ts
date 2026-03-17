@@ -10,6 +10,9 @@ export interface User {
   country?: string;
   state?: string;
   city?: string;
+  classGrade?: string;
+  schoolName?: string;
+  board?: string;
 }
 
 export interface Option {
