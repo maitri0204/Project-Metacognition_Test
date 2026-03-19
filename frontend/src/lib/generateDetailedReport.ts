@@ -386,7 +386,7 @@ export async function generateDetailedReport(data: ReportData): Promise<void> {
   const [qStart, qEnd] = quadrantPageRange[quadrantLabel];
 
   // All static image pages we need
-  const commonPages = [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 24, 25];
+  const commonPages = [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 24];
   const quadrantPages: number[] = [];
   for (let p = qStart; p <= qEnd; p++) quadrantPages.push(p);
   const allStaticPages = [...commonPages, ...quadrantPages];
@@ -426,9 +426,8 @@ export async function generateDetailedReport(data: ReportData): Promise<void> {
     if (img) addImagePage(doc, img);
   }
 
-  // ── Pages 24 & 25 — Common ending pages ──
+  // ── Page 24 — Common ending page ──
   addImagePage(doc, imageMap.get(24)!);
-  addImagePage(doc, imageMap.get(25)!);
 
   // Save
   const fileName = `TEST_Detailed_Report_${data.studentName.replace(/\s+/g, "_")}.pdf`;
