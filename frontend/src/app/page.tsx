@@ -827,20 +827,33 @@ export default function Home() {
               </h4>
               <ul className="space-y-3">
                 {[
-                  { label: "Home", href: "/" },
-                  { label: "Take the Test", href: "/signup" },
-                  { label: "Sign In", href: "/login" },
-                  { label: "Privacy Policy", href: "#" },
-                  { label: "Terms & Conditions", href: "#" },
+                  { label: "Home", href: "/", external: false },
+                  { label: "Take the Test", href: "/signup", external: false },
+                  { label: "Sign In", href: "/login", external: false },
+                  { label: "Disclaimer", href: "/disclaimer", external: false },
+                  { label: "Privacy Policy", href: "https://core.admitra.io/privacy-policy", external: true },
+                  { label: "Terms of Service", href: "https://core.admitra.io/terms-of-service", external: true },
                 ].map((link, i) => (
                   <li key={i}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-slate-500 hover:text-cyan-400 transition-colors flex items-center gap-2"
-                    >
-                      <ChevronRight size={14} className="text-slate-600" />
-                      {link.label}
-                    </Link>
+                    {link.external ? (
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-slate-500 hover:text-cyan-400 transition-colors flex items-center gap-2"
+                      >
+                        <ChevronRight size={14} className="text-slate-600" />
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="text-sm text-slate-500 hover:text-cyan-400 transition-colors flex items-center gap-2"
+                      >
+                        <ChevronRight size={14} className="text-slate-600" />
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

@@ -140,9 +140,11 @@ export default function SignupPage() {
         {/* Header */}
         <div className="text-center mb-8 animate-fade-in">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center shadow-xl">
-              <span className="text-white font-bold text-3xl">M</span>
-            </div>
+            <img
+                src="/logo.png"
+                alt="Thinking & Expression Skills Test"
+                className="h-19 w-auto object-contain"
+              />
           </div>
           <h2 className="text-4xl font-bold text-gray-900 mb-2">
             {step === "form" ? "Create Account" : "Verify Email"}

@@ -13,34 +13,6 @@ interface ReportData {
   board?: string;
 }
 
-// ── Image file naming (v1.2) ──
-const IMG_PREFIX = "Report_Thinking & Expression Skills Test1.2_page-";
-
-// Page number → image file suffix
-// Pages 2 and 4 are dynamically generated (not in this map)
-const PAGE_IMAGE_SUFFIX: Record<number, string> = {
-  1: "0001",
-  3: "0003",
-  5: "0005",
-  6: "0006",
-  7: "0007",
-  8: "0008",
-  9: "0009",
-  10: "0010",
-  11: "00011",
-  12: "0012",
-  13: "0013",
-  14: "0014",
-  15: "0015",
-  16: "0016",
-  17: "0017",
-  18: "0018",
-  19: "0019",
-  20: "0020",
-  21: "0021",
-  22: "0022",
-};
-
 // ── Color constants ──
 const PRIMARY_BLUE = [0, 123, 194];
 const DARK_BLUE = [0, 72, 132];
@@ -48,7 +20,11 @@ const LIGHT_BLUE = [230, 244, 255];
 const GRAY_500 = [107, 114, 128];
 
 // ── Quadrant names ──
-type QuadrantType = "Self-Regulated Learner" | "Reflective Learner" | "Passive Learner" | "Strategic Learner";
+type QuadrantType =
+  | "Self-Regulated Learner"
+  | "Reflective Learner"
+  | "Passive Learner"
+  | "Strategic Learner";
 
 // ── Helpers ──
 
@@ -61,10 +37,6 @@ async function fetchImageAsDataURL(url: string): Promise<string> {
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
-}
-
-function getImageUrl(pageSuffix: string): string {
-  return "/" + encodeURIComponent(`${IMG_PREFIX}${pageSuffix}.jpg`);
 }
 
 /** Adds border, top accent bar, and footer bar to a dynamic page */
@@ -126,7 +98,13 @@ function addStudentInfoPage(doc: jsPDF, data: ReportData) {
 
     if (i % 2 === 0) {
       doc.setFillColor(LIGHT_BLUE[0], LIGHT_BLUE[1], LIGHT_BLUE[2]);
-      doc.rect(boxX + 0.5, rowY + (i === 0 ? 0.5 : 0), boxW - 1, rowH - (i === 0 ? 0.5 : 0), "F");
+      doc.rect(
+        boxX + 0.5,
+        rowY + (i === 0 ? 0.5 : 0),
+        boxW - 1,
+        rowH - (i === 0 ? 0.5 : 0),
+        "F",
+      );
     }
 
     if (i < infoFields.length - 1) {
@@ -159,10 +137,19 @@ function getQuadrant(ds: DomainScores): {
   kPct: number;
   rPct: number;
 } {
-  const kPct = Math.min(100, Math.max(0, Math.round((ds.domain1 / 50) * 100)));
-  const rPct = Math.min(100, Math.max(0,
-    Math.round(((ds.domain2 + ds.domain3 + ds.domain4 + ds.domain5) / 150) * 100),
-  ));
+  const kPct = Math.min(
+    100,
+    Math.max(0, Math.round((ds.domain1 / 50) * 100)),
+  );
+  const rPct = Math.min(
+    100,
+    Math.max(
+      0,
+      Math.round(
+        ((ds.domain2 + ds.domain3 + ds.domain4 + ds.domain5) / 150) * 100,
+      ),
+    ),
+  );
 
   let label: QuadrantType;
   if (kPct >= 50 && rPct >= 50) label = "Self-Regulated Learner";
@@ -175,44 +162,40 @@ function getQuadrant(ds: DomainScores): {
 
 // ────────────────────────────────────────────
 //  PAGE 4 — Quadrant Chart (Dynamic)
-//  Colors match the attached screenshot exactly:
-//    top-left = light blue, top-right = light mint/cyan,
-//    bottom-left = light pink, bottom-right = light lavender/purple
+//  Square orientation in upper portion with text below
 // ────────────────────────────────────────────
-function addQuadrantPage(doc: jsPDF, data: ReportData) {
+function addQuadrantPage(doc: jsPDF, data: ReportData, bgImage: string) {
   doc.addPage();
-  addPageChrome(doc);
-
   const w = doc.internal.pageSize.getWidth();
+  const h = doc.internal.pageSize.getHeight();
+  // Use 4.png as full-page background
+  doc.addImage(bgImage, "PNG", 0, 0, w, h);
 
   const { label: quadrantLabel, kPct, rPct } = getQuadrant(data.domainScores);
 
-  // ── Chart geometry ──
-  const chartX = 50;
-  const chartY = 30;
-  const chartW = 136;
-  const chartH = 180;
+  // ── Square chart geometry (centered horizontally in the upper portion) ──
+  const chartSize = 120; // square side in mm
+  const chartX = (w - chartSize) / 2 + 10; // shift right a bit for y-axis label room
+  const chartY = 28;
+  const chartW = chartSize;
+  const chartH = chartSize;
 
   const xAt = (pct: number) => chartX + (pct / 100) * chartW;
   const yAt = (pct: number) => chartY + chartH - (pct / 100) * chartH;
   const midX = xAt(50);
   const midY = yAt(50);
 
-  // ── Quadrant fills (match attached image colors) ──
-  // Top-left: light blue / periwinkle
-  doc.setFillColor(206, 215, 252);
+  // ── Quadrant fills ──
+  doc.setFillColor(206, 215, 252); // TL: periwinkle
   doc.rect(chartX, chartY, chartW / 2, chartH / 2, "F");
-  // Top-right: light mint / cyan-green
-  doc.setFillColor(208, 245, 235);
+  doc.setFillColor(208, 245, 235); // TR: mint
   doc.rect(midX, chartY, chartW / 2, chartH / 2, "F");
-  // Bottom-left: light pink / blush
-  doc.setFillColor(252, 220, 220);
+  doc.setFillColor(252, 220, 220); // BL: pink
   doc.rect(chartX, midY, chartW / 2, chartH / 2, "F");
-  // Bottom-right: light lavender / purple tint
-  doc.setFillColor(228, 210, 240);
+  doc.setFillColor(228, 210, 240); // BR: lavender
   doc.rect(midX, midY, chartW / 2, chartH / 2, "F");
 
-  // ── Highlight region (area under the point within its quadrant) ──
+  // ── Highlight region ──
   const dotX = xAt(kPct);
   const dotY = yAt(rPct);
   let hlX: number, hlY: number, hlW: number, hlH: number;
@@ -225,141 +208,121 @@ function addQuadrantPage(doc: jsPDF, data: ReportData) {
     hlX = chartX; hlY = dotY; hlW = dotX - chartX; hlH = midY - dotY;
     hlFill = [59, 130, 246]; hlBorder = [37, 99, 235];
   } else if (kPct < 50 && rPct < 50) {
-    hlX = chartX; hlY = dotY; hlW = dotX - chartX; hlH = (chartY + chartH) - dotY;
+    hlX = chartX; hlY = dotY; hlW = dotX - chartX; hlH = chartY + chartH - dotY;
     hlFill = [239, 68, 68]; hlBorder = [220, 38, 38];
   } else {
-    hlX = midX; hlY = dotY; hlW = dotX - midX; hlH = (chartY + chartH) - dotY;
+    hlX = midX; hlY = dotY; hlW = dotX - midX; hlH = chartY + chartH - dotY;
     hlFill = [234, 179, 8]; hlBorder = [180, 130, 8];
   }
   if (hlW > 0 && hlH > 0) {
-    // Light-tinted fill (simulate ~25% opacity by blending toward white)
-    const lightFill: [number, number, number] = [
+    const lf: [number, number, number] = [
       Math.min(255, hlFill[0] + Math.round((255 - hlFill[0]) * 0.72)),
       Math.min(255, hlFill[1] + Math.round((255 - hlFill[1]) * 0.72)),
       Math.min(255, hlFill[2] + Math.round((255 - hlFill[2]) * 0.72)),
     ];
-    doc.setFillColor(lightFill[0], lightFill[1], lightFill[2]);
+    doc.setFillColor(lf[0], lf[1], lf[2]);
     doc.rect(hlX, hlY, hlW, hlH, "F");
-    // Border
     doc.setDrawColor(hlBorder[0], hlBorder[1], hlBorder[2]);
     doc.setLineWidth(0.8);
     doc.rect(hlX, hlY, hlW, hlH, "S");
   }
 
-  // ── Midlines (quadrant dividers) ──
+  // ── Midlines ──
   doc.setDrawColor(100, 110, 130);
   doc.setLineWidth(0.7);
   doc.line(midX, chartY, midX, chartY + chartH);
   doc.line(chartX, midY, chartX + chartW, midY);
 
-  // ── Outer border ──
+  // ── Outer border + bold axes ──
   doc.setDrawColor(70, 80, 100);
   doc.setLineWidth(0.8);
   doc.rect(chartX, chartY, chartW, chartH);
-
-  // ── Y-axis line (left edge, drawn bold so it's clearly visible) ──
-  doc.setDrawColor(70, 80, 100);
   doc.setLineWidth(1.2);
-  doc.line(chartX, chartY, chartX, chartY + chartH);
+  doc.line(chartX, chartY, chartX, chartY + chartH); // Y-axis
+  doc.line(chartX, chartY + chartH, chartX + chartW, chartY + chartH); // X-axis
 
-  // ── X-axis line (bottom edge, drawn bold) ──
-  doc.line(chartX, chartY + chartH, chartX + chartW, chartY + chartH);
-
-  // ── Tick marks & axis numbers (larger font) ──
+  // ── Tick marks & numbers ──
   const ticks = [0, 25, 50, 75, 100];
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(70, 75, 90);
   doc.setDrawColor(70, 80, 100);
   doc.setLineWidth(0.4);
-
   ticks.forEach((v) => {
     const tx = xAt(v);
     const ty = yAt(v);
-    // X-axis tick
-    doc.line(tx, chartY + chartH, tx, chartY + chartH + 3);
-    doc.text(String(v), tx, chartY + chartH + 8, { align: "center" });
-    // Y-axis tick
-    doc.line(chartX - 3, ty, chartX, ty);
-    doc.text(String(v), chartX - 4.5, ty + 2, { align: "right" });
+    doc.line(tx, chartY + chartH, tx, chartY + chartH + 2.5);
+    doc.text(String(v), tx, chartY + chartH + 7, { align: "center" });
+    doc.line(chartX - 2.5, ty, chartX, ty);
+    doc.text(String(v), chartX - 3.5, ty + 1.5, { align: "right" });
   });
 
-  // ── Axis labels (larger, bold) ──
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(45, 50, 65);
-
-  // X-axis label
-  doc.text("Knowledge (Awareness) %", chartX + chartW / 2, chartY + chartH + 18, { align: "center" });
-
-  // Y-axis label (rotated 90°, two lines so each is large enough to read)
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(45, 50, 65);
-
-  // Y-axis label — single line, placed at x=30 (midway between page border 12 and tick numbers 45)
-  // chartH=180 gives plenty of vertical room for the full text
-  doc.setFontSize(11);
+  // ── Axis labels ──
+  doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(45, 50, 65);
   doc.text(
-    "Regulation %", 
-    36,
+    "Knowledge (Awareness) %",
+    chartX + chartW / 2,
+    chartY + chartH + 14,
+    { align: "center" },
+  );
+
+  // Y-axis label (rotated) — positioned well inside left margin
+  doc.setFontSize(6);
+  doc.text(
+    "Regulation (Planning + Monitoring + Regulation + Reflection) %",
+    chartX - 9,
     chartY + chartH / 2,
     { angle: 90, align: "center" },
   );
 
-  // ── Quadrant corner labels (large, bold, colored) ──
-  doc.setFontSize(14);
+  // ── Quadrant corner labels ──
+  doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
 
-  doc.setTextColor(37, 99, 235);   // blue
-  doc.text("Reflective", xAt(25), yAt(78), { align: "center" });
+  doc.setTextColor(37, 99, 235);
+  doc.text("Reflective", xAt(25), yAt(75), { align: "center" });
 
-  doc.setTextColor(22, 163, 74);   // green
+  doc.setTextColor(22, 163, 74);
   doc.text("Self-Regulated", xAt(75), yAt(82), { align: "center" });
-  doc.setFontSize(13);
-  doc.text("Learner", xAt(75), yAt(76), { align: "center" });
-
-  doc.setFontSize(14);
-  doc.setTextColor(220, 38, 38);   // red
-  doc.text("Passive", xAt(25), yAt(22), { align: "center" });
-
-  doc.setTextColor(180, 83, 9);    // amber-brown
-  doc.text("Strategic", xAt(75), yAt(22), { align: "center" });
-
-  // ── Student dot (dotX, dotY declared earlier for highlight) ──
-  // Solid red dot (matches the attached screenshot)
-  doc.setFillColor(200, 30, 30);
-  doc.circle(dotX, dotY, 3.5, "F");
-
-  // ── Tooltip above the dot ──
-  const ttText = `(${kPct}%, ${rPct}%)`;
   doc.setFontSize(10);
+  doc.text("Learner", xAt(75), yAt(74), { align: "center" });
+
+  doc.setFontSize(11);
+  doc.setTextColor(220, 38, 38);
+  doc.text("Passive", xAt(25), yAt(25), { align: "center" });
+
+  doc.setTextColor(180, 83, 9);
+  doc.text("Strategic", xAt(75), yAt(25), { align: "center" });
+
+  // ── Student dot ──
+  doc.setFillColor(200, 30, 30);
+  doc.circle(dotX, dotY, 2.8, "F");
+
+  // ── Tooltip ──
+  const ttText = `(${kPct}%, ${rPct}%)`;
+  doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
-  const ttW = doc.getTextWidth(ttText) + 8;
-  const ttH = 8;
+  const ttW = doc.getTextWidth(ttText) + 6;
+  const ttH = 6;
   let ttX = dotX - ttW / 2;
-  const ttY = Math.max(chartY + 1.5, dotY - 15);
+  const ttY = Math.max(chartY + 1, dotY - 12);
   if (ttX < chartX + 1) ttX = chartX + 1;
   if (ttX + ttW > chartX + chartW - 1) ttX = chartX + chartW - 1 - ttW;
-  // Shadow
   doc.setFillColor(90, 100, 120);
-  doc.roundedRect(ttX + 0.8, ttY + 0.8, ttW, ttH, 2, 2, "F");
-  // Fill
+  doc.roundedRect(ttX + 0.6, ttY + 0.6, ttW, ttH, 1.5, 1.5, "F");
   doc.setFillColor(30, 40, 65);
-  doc.roundedRect(ttX, ttY, ttW, ttH, 2, 2, "F");
-  // Text
+  doc.roundedRect(ttX, ttY, ttW, ttH, 1.5, 1.5, "F");
   doc.setTextColor(255, 255, 255);
-  doc.text(ttText, ttX + ttW / 2, ttY + 5.5, { align: "center" });
-  // Connector line
+  doc.text(ttText, ttX + ttW / 2, ttY + 4.2, { align: "center" });
   doc.setDrawColor(30, 40, 65);
-  doc.setLineWidth(0.5);
-  doc.line(dotX, ttY + ttH, dotX, dotY - 3.5);
+  doc.setLineWidth(0.4);
+  doc.line(dotX, ttY + ttH, dotX, dotY - 2.8);
 
-  // ── "Quadrant: [label]" below chart ──
-  const bottomY = chartY + chartH + 28;
-  doc.setFontSize(16);
+  // ── "Quadrant: [label]" text below chart ──
+  const textStartY = chartY + chartH + 24;
+  doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(50, 50, 50);
 
@@ -367,9 +330,8 @@ function addQuadrantPage(doc: jsPDF, data: ReportData) {
   const fullTextW = doc.getTextWidth(prefix + quadrantLabel);
   const startX = w / 2 - fullTextW / 2;
 
-  doc.text(prefix, startX, bottomY);
+  doc.text(prefix, startX, textStartY);
 
-  // Color for the quadrant label
   const qColorMap: Record<QuadrantType, [number, number, number]> = {
     "Self-Regulated Learner": [22, 163, 74],
     "Reflective Learner": [37, 99, 235],
@@ -378,15 +340,50 @@ function addQuadrantPage(doc: jsPDF, data: ReportData) {
   };
   const qc = qColorMap[quadrantLabel];
   doc.setTextColor(qc[0], qc[1], qc[2]);
-  doc.text(quadrantLabel, startX + doc.getTextWidth(prefix), bottomY);
+  doc.text(quadrantLabel, startX + doc.getTextWidth(prefix), textStartY);
+
+  // ── Description text below the quadrant label ──
+  let descY = textStartY + 12;
+
+  const descriptions: Record<QuadrantType, string[]> = {
+    "Self-Regulated Learner": [
+      "You demonstrate strong awareness of your thinking processes and effectively",
+      "regulate your learning strategies. You plan, monitor, and adjust your approach",
+      "to learning, which indicates a high level of metacognitive ability.",
+    ],
+    "Reflective Learner": [
+      "You show good regulation skills such as planning and monitoring, but your",
+      "awareness of your own thinking could be strengthened. Building knowledge about",
+      "how you think will help you become a more effective learner.",
+    ],
+    "Passive Learner": [
+      "Your current scores suggest limited awareness and regulation of your learning",
+      "processes. With targeted practice in planning, monitoring, and reflecting on",
+      "your learning, you can significantly improve your academic performance.",
+    ],
+    "Strategic Learner": [
+      "You have good awareness of your thinking but could improve in regulating your",
+      "learning strategies. Focusing on planning, monitoring your progress, and",
+      "reflecting on outcomes will help you reach your full potential.",
+    ],
+  };
+
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(80, 80, 80);
+  const lines = descriptions[quadrantLabel];
+  lines.forEach((line) => {
+    doc.text(line, w / 2, descY, { align: "center" });
+    descY += 5;
+  });
 }
 
 // ── Add a full-page static image ──
-function addImagePage(doc: jsPDF, imgDataUrl: string) {
+function addImagePage(doc: jsPDF, imgDataUrl: string, format: string = "PNG") {
   doc.addPage();
   const w = doc.internal.pageSize.getWidth();
   const h = doc.internal.pageSize.getHeight();
-  doc.addImage(imgDataUrl, "JPEG", 0, 0, w, h);
+  doc.addImage(imgDataUrl, format, 0, 0, w, h);
 }
 
 // ────────────────────────────────────────────
@@ -397,40 +394,45 @@ export async function generateDetailedReport(data: ReportData): Promise<void> {
   const w = doc.internal.pageSize.getWidth();
   const h = doc.internal.pageSize.getHeight();
 
-  // Determine which quadrant-specific pages (10-21) to include
+  // Determine quadrant
   const { label: quadrantLabel } = getQuadrant(data.domainScores);
 
-  // Quadrant → page range mapping:
-  //   Passive Learner (Unaware)           → pages 10-12
-  //   Reflective Learner                  → pages 13-15
-  //   Strategic Learner                   → pages 16-18
-  //   Self-Regulated Learner (Expert)     → pages 19-21
+  // ── Page mapping (new structure) ──
+  // Common static pages: 1, 3, 5-11, 24, 25
+  // Conditional pages based on quadrant:
+  //   Passive Learner    → 12-14
+  //   Reflective Learner → 15-17
+  //   Strategic Learner  → 18-20
+  //   Self-Regulated Learner → 21-23
+  // Dynamic pages: 2 (student info), 4 (quadrant), disclaimer (end)
+
   const quadrantPageRange: Record<QuadrantType, [number, number]> = {
-    "Passive Learner":         [10, 12],
-    "Reflective Learner":      [13, 15],
-    "Strategic Learner":       [16, 18],
-    "Self-Regulated Learner":  [19, 21],
+    "Passive Learner": [12, 14],
+    "Reflective Learner": [15, 17],
+    "Strategic Learner": [18, 20],
+    "Self-Regulated Learner": [21, 23],
   };
   const [qStart, qEnd] = quadrantPageRange[quadrantLabel];
 
-  // Build list of all pages we need images for:
-  //   Pages 1, 3, 5-9 (common) + quadrant-specific pages + 22 (last)
-  const commonPages = [1, 3, 5, 6, 7, 8, 9];
+  // All static image pages we need
+  const commonPages = [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 24, 25];
   const quadrantPages: number[] = [];
   for (let p = qStart; p <= qEnd; p++) quadrantPages.push(p);
-  const allStaticPages = [...commonPages, ...quadrantPages, 22];
+  const allStaticPages = [...commonPages, ...quadrantPages];
 
-  // Pre-fetch only the images we actually need
-  const imageUrls = allStaticPages.map((num) => getImageUrl(PAGE_IMAGE_SUFFIX[num]));
-  const imageDataUrls = await Promise.all(imageUrls.map((url) => fetchImageAsDataURL(url)));
+  // Pre-fetch all needed images (now PNG format, named N.png)
+  const imageUrls = allStaticPages.map((num) => `/${num}.png`);
+  const imageDataUrls = await Promise.all(
+    imageUrls.map((url) => fetchImageAsDataURL(url)),
+  );
 
   const imageMap = new Map<number, string>();
   allStaticPages.forEach((num, i) => {
     imageMap.set(num, imageDataUrls[i]);
   });
 
-  // ── Page 1 — Cover (static image, first page of doc) ──
-  doc.addImage(imageMap.get(1)!, "JPEG", 0, 0, w, h);
+  // ── Page 1 — Cover (first page of doc, no addPage needed) ──
+  doc.addImage(imageMap.get(1)!, "PNG", 0, 0, w, h);
 
   // ── Page 2 — Student Information (dynamic) ──
   addStudentInfoPage(doc, data);
@@ -438,11 +440,11 @@ export async function generateDetailedReport(data: ReportData): Promise<void> {
   // ── Page 3 — Static image ──
   addImagePage(doc, imageMap.get(3)!);
 
-  // ── Page 4 — Quadrant Chart (dynamic) ──
-  addQuadrantPage(doc, data);
+  // ── Page 4 — Quadrant Chart (4.png background with dynamic quadrant overlay) ──
+  addQuadrantPage(doc, data, imageMap.get(4)!);
 
-  // ── Pages 5-9 — Common static images ──
-  for (let p = 5; p <= 9; p++) {
+  // ── Pages 5-11 — Common static images ──
+  for (let p = 5; p <= 11; p++) {
     const img = imageMap.get(p);
     if (img) addImagePage(doc, img);
   }
@@ -453,8 +455,9 @@ export async function generateDetailedReport(data: ReportData): Promise<void> {
     if (img) addImagePage(doc, img);
   }
 
-  // ── Page 22 — Last page (common) ──
-  addImagePage(doc, imageMap.get(22)!);
+  // ── Pages 24 & 25 — Common ending pages ──
+  addImagePage(doc, imageMap.get(24)!);
+  addImagePage(doc, imageMap.get(25)!);
 
   // Save
   const fileName = `TEST_Detailed_Report_${data.studentName.replace(/\s+/g, "_")}.pdf`;
