@@ -173,10 +173,11 @@ function addQuadrantPage(doc: jsPDF, data: ReportData, bgImage: string) {
 
   const { label: quadrantLabel, kPct, rPct } = getQuadrant(data.domainScores);
 
-  // ── Square chart geometry (centered horizontally in the upper portion) ──
-  const chartSize = 120; // square side in mm
-  const chartX = (w - chartSize) / 2 + 10; // shift right a bit for y-axis label room
-  const chartY = 28;
+  // ── Square chart geometry ──
+  // Shifted right from center to leave room for y-axis label on the left
+  const chartSize = 115; // square side in mm
+  const chartX = 55;     // leaves ~45mm on the left for y-axis label + ticks
+  const chartY = 20;     // near top so chart stays clear of background content below
   const chartW = chartSize;
   const chartH = chartSize;
 
@@ -268,33 +269,38 @@ function addQuadrantPage(doc: jsPDF, data: ReportData, bgImage: string) {
     { align: "center" },
   );
 
-  // Y-axis label (rotated) — positioned well inside left margin
-  doc.setFontSize(6);
+  // Y-axis label — anchor shifted up so text midpoint aligns with chart center
+  // Text at 8pt bold is ~97mm long; center = chartY + chartH/2 = 77.5mm
+  // Anchor = 77.5 + 97/2 ≈ 126, i.e. chartY + chartH - 9
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(30, 50, 100);
   doc.text(
     "Regulation (Planning + Monitoring + Regulation + Reflection) %",
-    chartX - 9,
-    chartY + chartH / 2,
-    { angle: 90, align: "center" },
+    42,
+    chartY + chartH - 9,
+    { angle: 90 },
   );
 
-  // ── Quadrant corner labels ──
-  doc.setFontSize(11);
+  // ── Quadrant corner labels (full names, two lines each) ──
+  doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
 
   doc.setTextColor(37, 99, 235);
-  doc.text("Reflective", xAt(25), yAt(75), { align: "center" });
+  doc.text("Reflective", xAt(25), yAt(78), { align: "center" });
+  doc.text("Learner", xAt(25), yAt(74), { align: "center" });
 
   doc.setTextColor(22, 163, 74);
-  doc.text("Self-Regulated", xAt(75), yAt(82), { align: "center" });
-  doc.setFontSize(10);
-  doc.text("Learner", xAt(75), yAt(74), { align: "center" });
+  doc.text("Self-Regulated", xAt(75), yAt(80), { align: "center" });
+  doc.text("Learner", xAt(75), yAt(76), { align: "center" });
 
-  doc.setFontSize(11);
   doc.setTextColor(220, 38, 38);
-  doc.text("Passive", xAt(25), yAt(25), { align: "center" });
+  doc.text("Passive", xAt(25), yAt(28), { align: "center" });
+  doc.text("Learner", xAt(25), yAt(24), { align: "center" });
 
   doc.setTextColor(180, 83, 9);
-  doc.text("Strategic", xAt(75), yAt(25), { align: "center" });
+  doc.text("Strategic", xAt(75), yAt(28), { align: "center" });
+  doc.text("Learner", xAt(75), yAt(24), { align: "center" });
 
   // ── Student dot ──
   doc.setFillColor(200, 30, 30);
@@ -322,7 +328,7 @@ function addQuadrantPage(doc: jsPDF, data: ReportData, bgImage: string) {
 
   // ── "Quadrant: [label]" text below chart ──
   const textStartY = chartY + chartH + 24;
-  doc.setFontSize(14);
+  doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(50, 50, 50);
 
@@ -341,41 +347,6 @@ function addQuadrantPage(doc: jsPDF, data: ReportData, bgImage: string) {
   const qc = qColorMap[quadrantLabel];
   doc.setTextColor(qc[0], qc[1], qc[2]);
   doc.text(quadrantLabel, startX + doc.getTextWidth(prefix), textStartY);
-
-  // ── Description text below the quadrant label ──
-  let descY = textStartY + 12;
-
-  const descriptions: Record<QuadrantType, string[]> = {
-    "Self-Regulated Learner": [
-      "You demonstrate strong awareness of your thinking processes and effectively",
-      "regulate your learning strategies. You plan, monitor, and adjust your approach",
-      "to learning, which indicates a high level of metacognitive ability.",
-    ],
-    "Reflective Learner": [
-      "You show good regulation skills such as planning and monitoring, but your",
-      "awareness of your own thinking could be strengthened. Building knowledge about",
-      "how you think will help you become a more effective learner.",
-    ],
-    "Passive Learner": [
-      "Your current scores suggest limited awareness and regulation of your learning",
-      "processes. With targeted practice in planning, monitoring, and reflecting on",
-      "your learning, you can significantly improve your academic performance.",
-    ],
-    "Strategic Learner": [
-      "You have good awareness of your thinking but could improve in regulating your",
-      "learning strategies. Focusing on planning, monitoring your progress, and",
-      "reflecting on outcomes will help you reach your full potential.",
-    ],
-  };
-
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(80, 80, 80);
-  const lines = descriptions[quadrantLabel];
-  lines.forEach((line) => {
-    doc.text(line, w / 2, descY, { align: "center" });
-    descY += 5;
-  });
 }
 
 // ── Add a full-page static image ──
